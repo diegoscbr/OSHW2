@@ -16,7 +16,15 @@ int main(int argc, char *argv[]) {
     }
         // Declare a pointer to a char and a size_t for getline
     char *line = NULL;
-    size_t len = 0;
+    /* 
+    From Ubuntu Manpage:
+        size_t Used  for  a  count of bytes.  It is the result of the sizeof() operator.  It is an
+              unsigned integer type capable of storing values in the range [0, SIZE_MAX].
+
+       ssize_t
+              Used for a count of bytes or an error indication.  It  is  a  signed  integer  type
+              capable of storing values al least in the range [-1, SSIZE_MAX].*/
+    size_t len = 0; 
     ssize_t read;
 
     // Read and print each line
@@ -28,7 +36,7 @@ int main(int argc, char *argv[]) {
         printf("Line number: %d, Characters: %ld, Process ID: %d\n", lineNumber, read - 1, getpid());
     }
 
-    // Free the line buffer
+    // Free the line pointer
     free(line);
 
     // Close the file
