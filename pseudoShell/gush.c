@@ -17,6 +17,12 @@ int main(int argc, char* argv[]){
     return 0;
 }
 
+
+
+
+
+/*****************************/
+/*****************************/
 void gush_loop(){
     
     char* line; //line entered by user
@@ -30,8 +36,8 @@ void gush_loop(){
         line = readLine();
         if(strcmp(line,"exit") == 0){EXIT_FLG = 1;} //check if user wants to exit
         argsArr = divideLine(line); //parse the line into tokens array
-        printf("args[0]: %s\n", args[0]);
-        printf("args[1]: %s\n", args[1]);
+        printf("args[0]: %s\n", argsArr[0]);
+        printf("args[1]: %s\n", argsArr[1]);
         free(line);
 
         
@@ -87,5 +93,7 @@ char** divideLine(char* line){
     tokArr[size] = NULL;
     return tokArr;  
 }
+/*****************************/
+/*****************************/
 
 
