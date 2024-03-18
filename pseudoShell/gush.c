@@ -23,10 +23,10 @@ void gush_loop(){
     do{
         printf("gush>");
         line = readLine();
-        line[strcspn(line, "\n")] = 0;
         if(strcmp(line,"exit") == 0){
             EXIT_FLG = 1;
         }
+        free(line);
         
     } while (EXIT_FLG == 0);
 }
@@ -35,6 +35,7 @@ char* readLine() {
     char* line = NULL;
     size_t bufsize = 0;
     getline(&line, &bufsize, stdin);
+    line[strcspn(line, "\n")] = 0; //removes the newline character from the end of the string
     return line;
 }
 
