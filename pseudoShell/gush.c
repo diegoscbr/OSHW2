@@ -32,19 +32,17 @@ void gush_loop(){
         printf("gush>");
         line = readLine();
         if(line == "exit"){
-            exit(0);
+            EXIT_FLG = 1;
         }
         
-    } while (EXIT_FLG);
+    } while (!EXIT_FLG);
 }
 
 char* readLine(){
     char *line = NULL;
     size_t bufsize = 0; // Initial buffer size (0 means getline will allocate)
     ssize_t characters_read;
-
     // Read a line of input from the user
-    printf("Enter a line of text: ");
     characters_read = getline(&line, &bufsize, stdin);
 
     if (characters_read == -1) {
