@@ -10,6 +10,12 @@ void gush_loop();
 char* readLine();
 char** divideLine(char* line); //parse the line into tokens and return an array of the tokens
 void executeCommand(char** argumentsArray);
+void pathCommand(char** args);
+void builtInCommands(char** args);
+
+const char* directories[] = {"/bin/", "/usr/bin/", NULL};
+const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
+int checkcmd_type(char* cmd);
 
 
 int main(int argc, char* argv[]){
@@ -35,14 +41,21 @@ void gush_loop(){
         printf("gush>");
         //initially reado of line
         line = readLine();
-        if(strcmp(line,"exit") == 0){EXIT_FLG = 1;} //check if user wants to exit
+        if(strcmp(line,"exit") == 0){exit(0);} //check if user wants to exit
         argsArr = divideLine(line); //parse the line into tokens array
         //printf("args[0]: %s\n", argsArr[0]);
        // printf("args[1]: %s\n", argsArr[1]);
-       if(strcmp(argsArr[0], "ls") == 0){
+      /*
+      if(strcmp(argsArr[0], "ls") == 0){
               argsArr[0] = "/bin/ls";
               executeCommand(argsArr); 
        }
+       else if(strcmp(argsArr[0], "pwd") == 0){
+                  argsArr[0] = "/bin/pwd";
+                  executeCommand(argsArr);
+            }
+      */ 
+        pathCommand(argsArr);
         
         free(line);
 
@@ -124,4 +137,22 @@ void executeCommand(char** args) {
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     }
 }
+/*****************************/
+/*****************************/
+void pathCommand(char** argArr){
+           // Check if the command exists and is executable in the directories
+        for (int i = 0; directories[i] != NULL; i++) {
+            // Allocate memory for the full path to the command
+            char* path = malloc(strlen(directories[i]) + strlen(argArr[0]) + 1);
+            strcpy(path, directories[i]);
+            strcat(path, argArr[0]);
+            if (access(path, X_OK) == 0) {
+                // The command is executable. Replace the command with the full path.
+                argArr[0] = path;
+                executeCommand(argArr);
+            }
+        }
+}
+
+
 
