@@ -9,6 +9,7 @@
 void gush_loop();
 char* readLine();
 char** divideLine(char* line); //parse the line into tokens and return an array of the tokens
+void executeCommand(char** argumentsArray);
 
 
 int main(int argc, char* argv[]){
@@ -36,8 +37,13 @@ void gush_loop(){
         line = readLine();
         if(strcmp(line,"exit") == 0){EXIT_FLG = 1;} //check if user wants to exit
         argsArr = divideLine(line); //parse the line into tokens array
-        printf("args[0]: %s\n", argsArr[0]);
-        printf("args[1]: %s\n", argsArr[1]);
+        //printf("args[0]: %s\n", argsArr[0]);
+       // printf("args[1]: %s\n", argsArr[1]);
+       if(strcmp(argsArr[0], "ls") == 0){
+              argsArr[0] = "/bin/ls";
+              executeCommand(argsArr); 
+       }
+        
         free(line);
 
         
@@ -95,5 +101,27 @@ char** divideLine(char* line){
 }
 /*****************************/
 /*****************************/
+void executeCommand(char** args) {
+    // Fork a new process
+    pid_t pid = fork();
 
+    if (pid == -1) {
+        // Fork failed
+        fprintf(stderr, "fork failed\n");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        // This is the child process. Execute the command.
+        char* envp[] = { NULL }; // Empty environment for execve
+        if (execve(args[0], args, envp) == -1) {
+            perror("execve failed");
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        // This is the parent process. Wait for the child to finish.
+        int status;
+        do {
+            waitpid(pid, &status, WUNTRACED);
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
+}
 
