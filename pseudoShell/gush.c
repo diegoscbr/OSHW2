@@ -11,7 +11,8 @@ char* readLine();
 char** divideLine(char* line); //parse the line into tokens and return an array of the tokens
 void executeCommand(char** argumentsArray);
 void pathCommand(char** args);
-void builtInCommands(char** args);
+void builtInExec(char** args);
+//implementations of cd, exit, kill, history, pwd, path are auxilaries to builtInExec
 
 const char* directories[] = {"/bin/", "/usr/bin/", NULL};
 const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
