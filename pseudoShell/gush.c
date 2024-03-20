@@ -18,7 +18,7 @@ void builtInExec(char** args);
 const char error_message[30] = "An error has occurred\n";
 const char* directories[] = {"/bin/", "/usr/bin/", NULL};
 const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
-int checkcmd_type(char* cmd);
+int isBuiltIn(char* cmd);
 
 
 int main(int argc, char* argv[]){
@@ -45,7 +45,7 @@ void gush_loop(){
         //initially reado of line
         line = readLine();
         argsArr = divideLine(line); //parse the line into tokens array
-        int cmdType = checkcmd_type(argsArr[0]);
+        int cmdType = isBuiltIn(argsArr[0]);
         if (cmdType == 0){
             builtInExec(argsArr);
         } else {
@@ -131,7 +131,7 @@ void executeCommand(char** args) {
 }
 /*****************************/
 /*****************************/
-int checkcmd_type(char* cmd){
+int isBuiltIn(char* cmd){
     int builtIN = 0;
     int pathType = 1;
     for(int i = 0; builtInCommands[i] != NULL; i++){
@@ -141,6 +141,9 @@ int checkcmd_type(char* cmd){
     }
     return pathType;
 }
+/*****************************/
+/*****************************/
+
 /*****************************/
 /*****************************/
 void pathCommand(char** argArr){
