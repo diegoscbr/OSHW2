@@ -204,11 +204,16 @@ void historyCommand(char** args){
 }
 void pwdCommand(char** args){
     char cwd[1024];
-    if(getcwd(cwd, sizeof(cwd)) != NULL){
-        printf("%s\n", cwd);
-    } else {
-        perror("gush");
+    if (args[1] != NULL){
+        write(STDERR_FILENO, error_message, strlen(error_message));
     }
+    else{
+        if(getcwd(cwd, sizeof(cwd)) != NULL){
+        printf("%s\n", cwd); 
+        }else {write(STDERR_FILENO, error_message, strlen(error_message));}
+    } 
 }
-
+void pathCommand(char** args){
+    //implement path
+}
 
