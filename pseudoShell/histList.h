@@ -1,14 +1,12 @@
 #ifndef HISTLIST_H
 #define HISTLIST_H
 #define MAX_ENTRIES 20
-// Node structure for the linked list
 typedef struct Node {
-    
+    int histBit;
     char* data;
     struct Node* next;
 } Node;
-
-// Function prototype to insert a node at the end of the list
+void setHistBit(Node* entry);
 void insertAtEnd(Node** headRef, char* data);
 Node* createNode(char* data);
 void printList(Node* head);
