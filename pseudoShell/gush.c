@@ -11,9 +11,16 @@ void gush_loop();
 char* readLine();
 char** divideLine(char* line); //parse the line into tokens and return an array of the tokens
 void executeCommand(char** argumentsArray);
-void pathCommand(char** args);
+void pathExec(char** args);
 void builtInExec(char** args);
 //implementations of cd, exit, kill, history, pwd, path are auxilaries to builtInExec
+void cdCommand(char** args);
+void exitCommand(char** args);
+void killCommand(char** args);
+void historyCommand(char** args);
+void pwdCommand(char** args);
+void pathCommand(char** args);
+
 
 const char error_message[30] = "An error has occurred\n";
 const char* directories[] = {"/bin/", "/usr/bin/", NULL};
@@ -49,7 +56,7 @@ void gush_loop(){
         if (cmdType == 0){
             builtInExec(argsArr);
         } else {
-            pathCommand(argsArr);
+            pathExec(argsArr);
         }
         free(line);   
     } while (EXIT_FLG == 0);
@@ -111,18 +118,15 @@ void executeCommand(char** args) {
     pid_t pid = fork();
 
     if (pid == -1) {
-        // Fork failed
         fprintf(stderr, "fork failed\n");
         exit(EXIT_FAILURE);
     } else if (pid == 0) {
-        // This is the child process. Execute the command.
-        char* envp[] = { NULL }; // Empty environment for execve
+        char* envp[] = { NULL };
         if (execve(args[0], args, envp) == -1) {
             perror("execve failed");
             exit(EXIT_FAILURE);
         }
     } else {
-        // This is the parent process. Wait for the child to finish.
         int status;
         do {
             waitpid(pid, &status, WUNTRACED);
@@ -146,7 +150,7 @@ int isBuiltIn(char* cmd){
 
 /*****************************/
 /*****************************/
-void pathCommand(char** argArr){
+void pathExec(char** argArr){
         for (int i = 0; directories[i] != NULL; i++) {
             char* path = malloc(strlen(directories[i]) + strlen(argArr[0]) + 1);
             strcpy(path, directories[i]);
@@ -161,36 +165,50 @@ void pathCommand(char** argArr){
 /*****************************/
 void builtInExec(char** args){
     if(strcmp(args[0], "cd") == 0){
-        if(args[1] == NULL){
-            write(STDERR_FILENO, error_message, strlen(error_message));
-        } else {
-            if(chdir(args[1]) != 0){
-                write(STDERR_FILENO, error_message, strlen(error_message));
-            }
-        }
+        cdCommand(args);
     } else if(strcmp(args[0], "exit") == 0){
-        exit(0);
+        exitCommand(args);
     } else if(strcmp(args[0], "kill") == 0){
-        if(args[1] == NULL){
-            fprintf(stderr, "gush: expected argument to \"kill\"\n");
-        } else {
-            if(kill(atoi(args[1]), SIGKILL) != 0){
-                perror("gush");
-            }
-        }
+        killCommand(args);
     } else if(strcmp(args[0], "history") == 0){
-        //implement history
+        historyCommand(args);
     } else if(strcmp(args[0], "pwd") == 0){
-        char cwd[1024];
-        if(getcwd(cwd, sizeof(cwd)) != NULL){
-            printf("%s\n", cwd);
-        } else {
-            perror("gush");
-        }
+        pwdCommand(args);
     } else if(strcmp(args[0], "path") == 0){
-        //implement path
+        pathCommand(args);
     }
 }
-
+void cdCommand(char** args){
+    if(args[1] == NULL){
+        write(STDERR_FILENO, error_message, strlen(error_message));
+    } else {
+        if(chdir(args[1]) != 0){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+    }
+}
+void exitCommand(char** args){
+    exit(0);
+}
+void killCommand(char** args){
+    if(args[1] == NULL){
+        fprintf(stderr, "gush: expected argument to \"kill\"\n");
+    } else {
+        if(kill(atoi(args[1]), SIGKILL) != 0){
+            perror("gush");
+        }
+    }
+}
+void historyCommand(char** args){
+    //implement history
+}
+void pwdCommand(char** args){
+    char cwd[1024];
+    if(getcwd(cwd, sizeof(cwd)) != NULL){
+        printf("%s\n", cwd);
+    } else {
+        perror("gush");
+    }
+}
 
 
