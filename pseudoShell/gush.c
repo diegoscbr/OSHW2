@@ -15,6 +15,7 @@ void pathCommand(char** args);
 void builtInExec(char** args);
 //implementations of cd, exit, kill, history, pwd, path are auxilaries to builtInExec
 
+const char error_message[30] = "An error has occurred\n";
 const char* directories[] = {"/bin/", "/usr/bin/", NULL};
 const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
 int checkcmd_type(char* cmd);
@@ -73,7 +74,7 @@ char** divideLine(char* line){
 
     char** tokArr = malloc(capacity * sizeof(char*));
     if (tokArr == NULL){
-        fprintf(stderr, "allocation error\n");
+        write(STDERR_FILENO, error_message, strlen(error_message));
         exit(EXIT_FAILURE);
     }
     char* tokArrElement = strtok(line, " ");//get the first token
@@ -161,7 +162,8 @@ void pathCommand(char** argArr){
 void builtInExec(char** args){
     if(strcmp(args[0], "cd") == 0){
         if(args[1] == NULL){
-            fprintf(stderr, "gush: expected argument to \"cd\"\n");
+            write(STDERR_FILENO, error_message, strlen(error_message));
+            //fprintf(stderr, "gush: expected argument to \"cd\"\n");
         } else {
             if(chdir(args[1]) != 0){
                 perror("gush");
