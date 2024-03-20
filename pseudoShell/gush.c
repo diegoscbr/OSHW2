@@ -140,6 +140,18 @@ void executeCommand(char** args) {
 }
 /*****************************/
 /*****************************/
+int checkcmd_type(char* cmd){
+    int builtIN = 0;
+    int pathType = 1;
+    for(i = 0; builtInCommands[i] != NULL; i++){
+        if(strcmp(cmd, builtInCommands[i]) == 0){
+            return builtIN;
+        }
+    }
+    return pathType;
+}
+/*****************************/
+/*****************************/
 void pathCommand(char** argArr){
            // Check if the command exists and is executable in the directories
         for (int i = 0; directories[i] != NULL; i++) {
