@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 
+#define SIGKILL 9
 
 void gush_loop();
 char* readLine();
@@ -42,25 +43,14 @@ void gush_loop(){
         printf("gush>");
         //initially reado of line
         line = readLine();
-        if(strcmp(line,"exit") == 0){exit(0);} //check if user wants to exit
         argsArr = divideLine(line); //parse the line into tokens array
-        //printf("args[0]: %s\n", argsArr[0]);
-       // printf("args[1]: %s\n", argsArr[1]);
-      /*
-      if(strcmp(argsArr[0], "ls") == 0){
-              argsArr[0] = "/bin/ls";
-              executeCommand(argsArr); 
-       }
-       else if(strcmp(argsArr[0], "pwd") == 0){
-                  argsArr[0] = "/bin/pwd";
-                  executeCommand(argsArr);
-            }
-      */ 
-        pathCommand(argsArr);
-        
-        free(line);
-
-        
+        int cmdType = checkcmd_type(argsArr[0]);
+        if (cmdType == 0){
+            builtInExec(argsArr);
+        } else {
+            pathCommand(argsArr);
+        }
+        free(line);   
     } while (EXIT_FLG == 0);
 }
 /*****************************/
@@ -143,7 +133,7 @@ void executeCommand(char** args) {
 int checkcmd_type(char* cmd){
     int builtIN = 0;
     int pathType = 1;
-    for(i = 0; builtInCommands[i] != NULL; i++){
+    for(int i = 0; builtInCommands[i] != NULL; i++){
         if(strcmp(cmd, builtInCommands[i]) == 0){
             return builtIN;
         }
@@ -165,6 +155,40 @@ void pathCommand(char** argArr){
                 executeCommand(argArr);
             }
         }
+}
+/*****************************/
+/*****************************/
+void builtInExec(char** args){
+    if(strcmp(args[0], "cd") == 0){
+        if(args[1] == NULL){
+            fprintf(stderr, "gush: expected argument to \"cd\"\n");
+        } else {
+            if(chdir(args[1]) != 0){
+                perror("gush");
+            }
+        }
+    } else if(strcmp(args[0], "exit") == 0){
+        exit(0);
+    } else if(strcmp(args[0], "kill") == 0){
+        if(args[1] == NULL){
+            fprintf(stderr, "gush: expected argument to \"kill\"\n");
+        } else {
+            if(kill(atoi(args[1]), SIGKILL) != 0){
+                perror("gush");
+            }
+        }
+    } else if(strcmp(args[0], "history") == 0){
+        //implement history
+    } else if(strcmp(args[0], "pwd") == 0){
+        char cwd[1024];
+        if(getcwd(cwd, sizeof(cwd)) != NULL){
+            printf("%s\n", cwd);
+        } else {
+            perror("gush");
+        }
+    } else if(strcmp(args[0], "path") == 0){
+        //implement path
+    }
 }
 
 
