@@ -178,6 +178,8 @@ void builtInExec(char** args){
         pathCommand(args);
     }
 }
+/*****************************/
+/*****************************/
 void cdCommand(char** args){
     if(args[1] == NULL){
         write(STDERR_FILENO, error_message, strlen(error_message));
@@ -187,9 +189,13 @@ void cdCommand(char** args){
         }
     }
 }
+/*****************************/
+/*****************************/
 void exitCommand(char** args){
     exit(0);
 }
+/*****************************/
+/*****************************/
 void killCommand(char** args){
     if(args[1] == NULL){
         fprintf(stderr, "gush: expected argument to \"kill\"\n");
@@ -199,9 +205,13 @@ void killCommand(char** args){
         }
     }
 }
+/*****************************/
+/*****************************/
 void historyCommand(char** args){
     //implement history
 }
+/*****************************/
+/*****************************/
 void pwdCommand(char** args){
     char cwd[1024];
     if (args[1] != NULL){
@@ -213,6 +223,8 @@ void pwdCommand(char** args){
         }else {write(STDERR_FILENO, error_message, strlen(error_message));}
     } 
 }
+/*****************************/
+/*****************************/
 void pathCommand(char** args){
     //implement path
 }
