@@ -144,14 +144,11 @@ int checkcmd_type(char* cmd){
 /*****************************/
 /*****************************/
 void pathCommand(char** argArr){
-           // Check if the command exists and is executable in the directories
         for (int i = 0; directories[i] != NULL; i++) {
-            // Allocate memory for the full path to the command
             char* path = malloc(strlen(directories[i]) + strlen(argArr[0]) + 1);
             strcpy(path, directories[i]);
             strcat(path, argArr[0]);
             if (access(path, X_OK) == 0) {
-                // The command is executable. Replace the command with the full path.
                 argArr[0] = path;
                 executeCommand(argArr);
             }
@@ -163,10 +160,9 @@ void builtInExec(char** args){
     if(strcmp(args[0], "cd") == 0){
         if(args[1] == NULL){
             write(STDERR_FILENO, error_message, strlen(error_message));
-            //fprintf(stderr, "gush: expected argument to \"cd\"\n");
         } else {
             if(chdir(args[1]) != 0){
-                perror("gush");
+                write(STDERR_FILENO, error_message, strlen(error_message));
             }
         }
     } else if(strcmp(args[0], "exit") == 0){
