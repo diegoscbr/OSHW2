@@ -60,6 +60,7 @@ void freeList(List* list) {
     list->tail = NULL;
     list->size = 0;
 }
+/*
 int main(){
     List list = {NULL, NULL, 0};
     for (int i = 0; i < 25; i++) {
@@ -71,3 +72,4 @@ int main(){
     freeList(&list);
     return 0;
 }
+*/
