@@ -187,8 +187,8 @@ void cdCommand(char** args){
         insertAtEnd(&historyList, "cd");
         write(STDERR_FILENO, error_message, strlen(error_message));
     } else {
-        if(chdir(args[1]) != 0){
-            insertAtEnd(&historyList, "cd");
+        insertAtEnd(&historyList, "cd");
+        if(chdir(args[1]) != 0){   
             write(STDERR_FILENO, error_message, strlen(error_message));
         }
     }
