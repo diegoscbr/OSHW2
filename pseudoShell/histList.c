@@ -62,7 +62,7 @@ void freeList(List* list) {
 }
 /*
 int main(){
-    List list = {NULL, NULL, 0};
+    List list = {NULL, NULL, 0}; // Initialize list
     for (int i = 0; i < 25; i++) {
         char data[10];
         sprintf(data, "cmd%d", i);

@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
-
+#include "histList.h"
 #define SIGKILL 9
 
 void gush_loop();
@@ -27,6 +27,7 @@ const char* directories[] = {"/bin/", "/usr/bin/", NULL};
 const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
 int isBuiltIn(char* cmd);
 
+List historyList = {NULL, NULL, 0};
 
 int main(int argc, char* argv[]){
 //interactive mode
@@ -158,6 +159,7 @@ void pathExec(char** argArr){
             if (access(path, X_OK) == 0) {
                 argArr[0] = path;
                 executeCommand(argArr);
+                insertAtEnd(&historyList, argArr[0]);
             }
         }
 }
@@ -182,9 +184,11 @@ void builtInExec(char** args){
 /*****************************/
 void cdCommand(char** args){
     if(args[1] == NULL){
+        insertAtEnd(&historyList, "cd");
         write(STDERR_FILENO, error_message, strlen(error_message));
     } else {
         if(chdir(args[1]) != 0){
+            insertAtEnd(&historyList, "cd");
             write(STDERR_FILENO, error_message, strlen(error_message));
         }
     }
@@ -198,6 +202,7 @@ void exitCommand(char** args){
 /*****************************/
 void killCommand(char** args){
     if(args[1] == NULL){
+        insertAtEnd(&historyList, "kill");
         fprintf(stderr, "gush: expected argument to \"kill\"\n");
     } else {
         if(kill(atoi(args[1]), SIGKILL) != 0){
@@ -209,7 +214,9 @@ void killCommand(char** args){
 /*****************************/
 void historyCommand(char** args){
     //implement history
+    printList(&historyList);
 }
+
 /*****************************/
 /*****************************/
 void pwdCommand(char** args){
@@ -220,6 +227,7 @@ void pwdCommand(char** args){
     else{
         if(getcwd(cwd, sizeof(cwd)) != NULL){
         printf("%s\n", cwd); 
+        insertAtEnd(&historyList, "pwd");
         }else {write(STDERR_FILENO, error_message, strlen(error_message));}
     } 
 }
