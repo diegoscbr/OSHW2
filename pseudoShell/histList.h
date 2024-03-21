@@ -6,10 +6,15 @@ typedef struct Node {
     char* data;
     struct Node* next;
 } Node;
+typedef struct List {
+    Node* head;
+    Node* tail;
+    int size;
+} List;
 void setHistBit(Node* entry);
-void insertAtEnd(Node** headRef, char* data);
+void insertAtEnd(List* list, char* data);
 Node* createNode(char* data);
-void printList(Node* head);
-void freeList(Node** headRef);
+void printList(List* list);
+void freeList(List* list);
 
 #endif /* HISTLIST_H */
