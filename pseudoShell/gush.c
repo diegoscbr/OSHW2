@@ -15,9 +15,9 @@ void pathExec(char** args);
 void builtInExec(char** args);
 //implementations of cd, exit, kill, history, pwd, path are auxilaries to builtInExec
 void cdCommand(char** args);
-void exitCommand(char** args);
+void exitCommand();
 void killCommand(char** args);
-void historyCommand(char** args);
+void historyCommand();
 void pwdCommand(char** args);
 void pathCommand(char** args);
 
@@ -28,17 +28,15 @@ const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path",
 int isBuiltIn(char* cmd);
 
 List historyList = {NULL, NULL, 0};
+void executeHistory(char** args);
 
+
+/*****************************/
+/*****************************/
 int main(int argc, char* argv[]){
-//interactive mode
     gush_loop();
     return 0;
 }
-
-
-
-
-
 /*****************************/
 /*****************************/
 void gush_loop(){
@@ -167,16 +165,21 @@ void pathExec(char** argArr){
 /*****************************/
 void builtInExec(char** args){
     if(strcmp(args[0], "cd") == 0){
+        insertAtEnd(&historyList, "cd");
         cdCommand(args);
     } else if(strcmp(args[0], "exit") == 0){
-        exitCommand(args);
+        insertAtEnd(&historyList, "exit");
+        exitCommand();
     } else if(strcmp(args[0], "kill") == 0){
+        insertAtEnd(&historyList, "kill");
         killCommand(args);
     } else if(strcmp(args[0], "history") == 0){
-        historyCommand(args);
+        historyCommand();
     } else if(strcmp(args[0], "pwd") == 0){
+        insertAtEnd(&historyList, "pwd");
         pwdCommand(args);
     } else if(strcmp(args[0], "path") == 0){
+        insertAtEnd(&historyList, "path");
         pathCommand(args);
     }
 }
@@ -184,10 +187,8 @@ void builtInExec(char** args){
 /*****************************/
 void cdCommand(char** args){
     if(args[1] == NULL){
-        insertAtEnd(&historyList, "cd");
         write(STDERR_FILENO, error_message, strlen(error_message));
     } else {
-        insertAtEnd(&historyList, "cd");
         if(chdir(args[1]) != 0){   
             write(STDERR_FILENO, error_message, strlen(error_message));
         }
@@ -195,14 +196,13 @@ void cdCommand(char** args){
 }
 /*****************************/
 /*****************************/
-void exitCommand(char** args){
+void exitCommand(){
     exit(0);
 }
 /*****************************/
 /*****************************/
 void killCommand(char** args){
     if(args[1] == NULL){
-        insertAtEnd(&historyList, "kill");
         fprintf(stderr, "gush: expected argument to \"kill\"\n");
     } else {
         if(kill(atoi(args[1]), SIGKILL) != 0){
@@ -212,22 +212,20 @@ void killCommand(char** args){
 }
 /*****************************/
 /*****************************/
-void historyCommand(char** args){
-    //implement history
+void historyCommand(){
     printList(&historyList);
 }
 
 /*****************************/
 /*****************************/
 void pwdCommand(char** args){
-    char cwd[1024];
+    char current[1024];
     if (args[1] != NULL){
         write(STDERR_FILENO, error_message, strlen(error_message));
     }
     else{
-        if(getcwd(cwd, sizeof(cwd)) != NULL){
-        printf("%s\n", cwd); 
-        insertAtEnd(&historyList, "pwd");
+        if(getcwd(current, sizeof(current)) != NULL){
+        printf("%s\n", current);
         }else {write(STDERR_FILENO, error_message, strlen(error_message));}
     } 
 }
