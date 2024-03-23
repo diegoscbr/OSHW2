@@ -26,6 +26,7 @@ const char error_message[30] = "An error has occurred\n";
 const char* directories[] = {"/bin/", "/usr/bin/", NULL};
 const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
 int isBuiltIn(char* cmd);
+int isFirstCharExclamation(char* cmd);
 
 List historyList = {NULL, NULL, 0};
 void executeHistory(char** args);
@@ -56,6 +57,7 @@ void gush_loop(){
             builtInExec(argsArr);
         } else {
             pathExec(argsArr);
+            //executeHistory(argsArr);
         }
         free(line);   
     } while (EXIT_FLG == 0);
@@ -116,6 +118,7 @@ void executeCommand(char** args) {
     // Fork a new process
     pid_t pid = fork();
 
+
     if (pid == -1) {
         fprintf(stderr, "fork failed\n");
         exit(EXIT_FAILURE);
@@ -137,12 +140,20 @@ void executeCommand(char** args) {
 int isBuiltIn(char* cmd){
     int builtIN = 0;
     int pathType = 1;
+    int historyType = 2;
     for(int i = 0; builtInCommands[i] != NULL; i++){
         if(strcmp(cmd, builtInCommands[i]) == 0){
             return builtIN;
         }
     }
     return pathType;
+}
+
+int isFirstCharExclamation(char *cmd) { //where cmd = arg[0] of the commad array passed
+    if (cmd[0] == '!')
+        return 1; // First character is '!'
+    else
+        return 0; // First character is not '!'
 }
 /*****************************/
 /*****************************/
@@ -219,6 +230,10 @@ void historyCommand(){
 void executeHistory(char** args){
     if(strcmp(args[0], "!1") == 0){
         //get the first element in the list
+        //assign the first element of hist list to args[0] 
+        char* cmd = searchList(&historyList, 1)->data;
+        args[0] = cmd;
+        executeCommand(args);
         //execute the command
     }
     else if (strcmp(args[0], "!2") == 0){
