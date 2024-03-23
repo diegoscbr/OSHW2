@@ -60,6 +60,19 @@ void freeList(List* list) {
     list->tail = NULL;
     list->size = 0;
 }
+
+Node* searchList(List* list, int index) {
+    if (index < 0 || index >= list->size) {
+        printf("Index out of bounds\n");
+        return NULL;
+    }
+    Node* current = list->head;
+    for (int i = 0; i < index; i++) {
+        current = current->next;
+    }
+    return current;
+}
+
 /*
 int main(){
     List list = {NULL, NULL, 0}; // Initialize list
