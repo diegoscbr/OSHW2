@@ -216,6 +216,91 @@ void historyCommand(){
     printList(&historyList);
 }
 
+void executeHistory(char** args){
+    if(strcmp(args[0], "!1") == 0){
+        //get the first element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!2") == 0){
+        //get the second element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!3") == 0){
+        //get the third element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!4") == 0){
+        //get the fourth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!5") == 0){
+        //get the fifth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!6") == 0){
+        //get the sixth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!7") == 0){
+        //get the seventh element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!8") == 0){
+        //get the eighth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!9") == 0){
+        //get the ninth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!10") == 0){
+        //get the tenth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!11") == 0){
+        //get the eleventh element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!12") == 0){
+        //get the twelveth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!13") == 0){
+        //get the thirteenth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!14") == 0){
+        //get the fourteenth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!15") == 0){
+        //get the fifteenth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!16") == 0){
+        //get the sixteenth element in the list
+        //execute the command
+}
+    else if (strcmp(args[0], "!17") == 0){
+        //get the seventeenth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!18") == 0){
+        //get the eighteenth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!19") == 0){
+        //get the nineteenth element in the list
+        //execute the command
+    }
+    else if (strcmp(args[0], "!20") == 0){
+        //get the twentieth element in the list
+        //execute the command
+    }
+    else {
+        write(STDERR_FILENO, error_message, strlen(error_message));
+    }
+}
 /*****************************/
 /*****************************/
 void pwdCommand(char** args){

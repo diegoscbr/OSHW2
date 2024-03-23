@@ -16,5 +16,6 @@ void insertAtEnd(List* list, char* data);
 Node* createNode(char* data);
 void printList(List* list);
 void freeList(List* list);
+void searchList(char *searchFlg, int entryNum, List* list);
 
 #endif /* HISTLIST_H */
