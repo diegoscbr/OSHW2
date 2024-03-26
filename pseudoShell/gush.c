@@ -273,6 +273,36 @@ char* parseHistory(char** args){
             return cmd;
         }      
     }
+    else if(strcmp(args[0], "!2") == 0){
+        if(searchList(&historyList, 1) == 0){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+        else{
+           char* cmd = searchList(&historyList, 1)->data;
+           printf("%s\n", cmd);
+            return cmd;
+        }      
+    }
+    else if (strcmp(args[0], "!3") == 0){
+       if(searchList(&historyList, 2) == 0){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+        else{
+           char* cmd = searchList(&historyList, 2)->data;
+           printf("%s\n", cmd);
+            return cmd;
+        }    
+    }
+    else if (strcmp(args[0], "!4") == 0){
+       if(searchList(&historyList, 3) == 0){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+        else{
+           char* cmd = searchList(&historyList, 3)->data;
+           printf("%s\n", cmd);
+            return cmd;
+        }    
+    }
 }//end of parseHistory
 
 /*****************************/
