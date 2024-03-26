@@ -67,8 +67,8 @@ void gush_loop(){
         }
         else if (cmdType == 2){
             char* execHist = parseHistory(argsArr);
-            int cmdTypeHist = isPathOrBuiltIn(execHist);
             char** histArr = divideLine(execHist);
+            int cmdTypeHist = isPathOrBuiltIn(histArr[0]);
             if (cmdTypeHist == 0){
                 builtInExec(histArr);
             } else if (cmdTypeHist == 1){
