@@ -25,6 +25,7 @@ void pathCommand(char** args);
 const char error_message[30] = "An error has occurred\n";
 const char* directories[] = {"/bin/", "/usr/bin/", NULL};
 const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
+const char* historyCommands[] = {"!1", "!2", "!3", "!4", "!5", "!6", "!7", "!8", "!9", "!10", "!11", "!12", "!13", "!14", "!15", "!16", "!17", "!18", "!19", "!20", NULL};
 int isBuiltIn(char* cmd);
 int isFirstCharExclamation(char* cmd);
 
@@ -149,8 +150,8 @@ int isBuiltIn(char* cmd){
     return pathType;
 }
 
-int isFirstCharExclamation(char *cmd) { //where cmd = arg[0] of the commad array passed
-    if (cmd[0] == '!')
+int isFirstCharExclamation(char *cmd) { //where cmd = arg[0] of the commad array passed3
+    if (strcmp(cmd, "!") == 0)
         return 1; // First character is '!'
     else
         return 0; // First character is not '!'
