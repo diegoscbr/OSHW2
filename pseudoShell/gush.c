@@ -27,16 +27,21 @@ const char* directories[] = {"/bin/", "/usr/bin/", NULL};
 const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
 const char* historyCommands[] = {"!1", "!2", "!3", "!4", "!5", "!6", "!7", "!8", "!9", "!10", "!11", "!12", "!13", "!14", "!15", "!16", "!17", "!18", "!19", "!20", NULL};
 int isBuiltIn(char* cmd);
-int isFirstCharExclamation(char* cmd);
 
 List historyList = {NULL, NULL, 0};
-void executeHistory(char** args);
+void parseHistory(char** args);
 
 
 /*****************************/
 /*****************************/
 int main(int argc, char* argv[]){
-    gush_loop();
+    if (argv[1] != NULL){
+        //read from file
+    }
+    else{
+       gush_loop(); 
+    }
+    
     return 0;
 }
 /*****************************/
@@ -56,9 +61,11 @@ void gush_loop(){
         int cmdType = isBuiltIn(argsArr[0]);
         if (cmdType == 0){
             builtInExec(argsArr);
-        } else {
+        } else if (cmdType == 1){
             pathExec(argsArr);
-            //executeHistory(argsArr);
+        }
+        else if (cmdType == 2){
+            parseHistory(argsArr);
         }
         free(line);   
     } while (EXIT_FLG == 0);
@@ -69,8 +76,8 @@ void gush_loop(){
 char* readLine() {
     char* line = NULL;
     size_t bufsize = 0;
-    getline(&line, &bufsize, stdin); //getline will allocate memory for line
-    line[strcspn(line, "\n")] = 0; //removes the newline character from the end of the string
+    getline(&line, &bufsize, stdin); 
+    line[strcspn(line, "\n")] = 0; 
     return line;
 }
 /*****************************/
@@ -116,7 +123,6 @@ char** divideLine(char* line){
 /*****************************/
 /*****************************/
 void executeCommand(char** args) {
-    // Fork a new process
     pid_t pid = fork();
 
 
@@ -147,15 +153,16 @@ int isBuiltIn(char* cmd){
             return builtIN;
         }
     }
+    for(int i = 0; historyCommands[i] != NULL; i++){
+        if(strcmp(cmd, historyCommands[i]) == 0){
+            printf("history command found\n");
+            return historyType;
+        }
+    }
+
     return pathType;
 }
 
-int isFirstCharExclamation(char *cmd) { //where cmd = arg[0] of the commad array passed3
-    if (strcmp(cmd, "!") == 0)
-        return 1; // First character is '!'
-    else
-        return 0; // First character is not '!'
-}
 /*****************************/
 /*****************************/
 
@@ -176,14 +183,21 @@ void pathExec(char** argArr){
 /*****************************/
 /*****************************/
 void builtInExec(char** args){
+    char * cmdWithArg;
+    if (args[1] != NULL){
+        cmdWithArg = malloc(strlen(args[0]) + strlen(args[1]) + 2);
+        strcpy(cmdWithArg, args[0]);
+        strcat(cmdWithArg, " ");
+        strcat(cmdWithArg, args[1]);
+    }
     if(strcmp(args[0], "cd") == 0){
-        insertAtEnd(&historyList, "cd");
+        insertAtEnd(&historyList, cmdWithArg);
         cdCommand(args);
     } else if(strcmp(args[0], "exit") == 0){
         insertAtEnd(&historyList, "exit");
         exitCommand();
     } else if(strcmp(args[0], "kill") == 0){
-        insertAtEnd(&historyList, "kill");
+        insertAtEnd(&historyList, cmdWithArg);
         killCommand(args);
     } else if(strcmp(args[0], "history") == 0){
         historyCommand();
@@ -228,13 +242,12 @@ void historyCommand(){
     printList(&historyList);
 }
 
-void executeHistory(char** args){
+void parseHistory(char** args){
     if(strcmp(args[0], "!1") == 0){
         //get the first element in the list
         //assign the first element of hist list to args[0] 
-        char* cmd = searchList(&historyList, 1)->data;
-        args[0] = cmd;
-        executeCommand(args);
+        char* cmd = searchList(&historyList, 0)->data;
+        printf("first element in List: %s\n", cmd);
         //execute the command
     }
     else if (strcmp(args[0], "!2") == 0){
