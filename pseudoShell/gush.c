@@ -27,9 +27,10 @@ const char* directories[] = {"/bin/", "/usr/bin/", NULL};
 const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
 const char* historyCommands[] = {"!1", "!2", "!3", "!4", "!5", "!6", "!7", "!8", "!9", "!10", "!11", "!12", "!13", "!14", "!15", "!16", "!17", "!18", "!19", "!20", NULL};
 int isBuiltIn(char* cmd);
+int isPathOrBuiltIn(char* cmd);
 
 List historyList = {NULL, NULL, 0};
-void parseHistory(char** args);
+char* parseHistory(char** args);
 
 
 /*****************************/
@@ -65,7 +66,14 @@ void gush_loop(){
             pathExec(argsArr);
         }
         else if (cmdType == 2){
-            parseHistory(argsArr);
+            char* execHist = parseHistory(argsArr);
+            int cmdTypeHist = isPathOrBuiltIn(execHist);
+            char** histArr = divideLine(execHist);
+            if (cmdTypeHist == 0){
+                builtInExec(histArr);
+            } else if (cmdTypeHist == 1){
+                pathExec(histArr);
+            }
         }
         free(line);   
     } while (EXIT_FLG == 0);
@@ -165,7 +173,16 @@ int isBuiltIn(char* cmd){
 
 /*****************************/
 /*****************************/
-
+int isPathOrBuiltIn(char* cmd){ //checks just path or built in 
+    int builtIN = 0;
+    int pathType = 1;
+    for(int i = 0; builtInCommands[i] != NULL; i++){
+        if(strcmp(cmd, builtInCommands[i]) == 0){
+            return builtIN;
+        }
+    }
+    return pathType;
+}
 /*****************************/
 /*****************************/
 void pathExec(char** argArr){
@@ -242,13 +259,20 @@ void historyCommand(){
     printList(&historyList);
 }
 
-void parseHistory(char** args){
+char* parseHistory(char** args){
     if(strcmp(args[0], "!1") == 0){
         //get the first element in the list
         //assign the first element of hist list to args[0] 
-        char* cmd = searchList(&historyList, 0)->data;
-        printf("first element in List: %s\n", cmd);
-        //execute the command
+        if(searchList(&historyList, 0) == NULL){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+        else{
+           char* cmd = searchList(&historyList, 0)->data;
+            printf("first element in List: %s\n", cmd);
+            return cmd;
+        //execute the command 
+        }
+        
     }
     else if (strcmp(args[0], "!2") == 0){
         //get the second element in the list
