@@ -23,7 +23,7 @@ void pathCommand(char** args);
 
 
 const char error_message[30] = "An error has occurred\n";
-const char* directories[] = {"/bin/", "/usr/bin/", "/usr/local/bin", NULL};
+
 const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
 const char* historyCommands[] = {"!1", "!2", "!3", "!4", "!5", "!6", "!7", "!8", "!9", "!10", "!11", "!12", "!13", "!14", "!15", "!16", "!17", "!18", "!19", "!20", NULL};
 int isBuiltIn(char* cmd);
@@ -32,7 +32,7 @@ int isPathOrBuiltIn(char* cmd);
 List historyList = {NULL, NULL, 0};
 char* parseHistory(char** args);
 
-
+char* directories[] = {"/bin/", "/usr/bin/", "/usr/local/bin", NULL};
 /*****************************/
 /*****************************/
 int main(int argc, char* argv[]){
@@ -324,10 +324,28 @@ void pathCommand(char** args){
     //implement path
     if (args[1] == NULL){
         write(STDERR_FILENO, error_message, strlen(error_message));
+        for(int i = 0; i < strlen(directories); i++){
+           directories[i] = NULL;
+       }
+
     }
-    else{
+    else if (args[1] != NULL){
        printf("path command\n");
+       for(int i = 0; i < strlen(directories); i++){
+           directories[i] = NULL;
+       }
+
+         for(int i = 1; args[i] != NULL; i++){
+            if (directories[i] == NULL){
+                char * pathNM = strdup(args[i]);
+                directories[i] = pathNM;
+            }
+         }
         
     }
-}
+    else if (strcmp(args[1], "reset") == 0){
+       char * directories[] = {"/bin/", "/usr/bin/", "/usr/local/bin", NULL};
+       }
+    }
+
 
