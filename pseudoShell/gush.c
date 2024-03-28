@@ -12,6 +12,7 @@ char* readLine();
 char** divideLine(char* line); //parse the line into tokens and return an array of the tokens
 void executeCommand(char** argumentsArray);
 void pathExec(char** args);
+char* getFullCommand(char** cmd);
 void builtInExec(char** args);
 //implementations of cd, exit, kill, history, pwd, path are auxilaries to builtInExec
 void cdCommand(char** args);
@@ -32,7 +33,8 @@ int isPathOrBuiltIn(char* cmd);
 List historyList = {NULL, NULL, 0};
 char* parseHistory(char** args);
 
-char* directories[] = {"/bin/", "/usr/bin/", "/usr/local/bin", NULL};
+char* directories[] = {"/bin", NULL};
+//char* directories[] = {"/bin/", "/usr/bin/", "/usr/local/bin", NULL};
 /*****************************/
 /*****************************/
 int main(int argc, char* argv[]){
@@ -192,13 +194,27 @@ void pathExec(char** argArr){
         for (int i = 0; directories[i] != NULL; i++) {
             char* path = malloc(strlen(directories[i]) + strlen(argArr[0]) + 1);
             strcpy(path, directories[i]);
+            strcat(path, "/");
             strcat(path, argArr[0]);
             if (access(path, X_OK) == 0) {
                 argArr[0] = path;
                 executeCommand(argArr);
-                insertAtEnd(&historyList, argArr[0]);
+                insertAtEnd(&historyList, getFullCommand(argArr));
+            }
+            else{
+                free(path);
             }
         }
+}
+
+char* getFullCommand(char** cmd){
+    char* fullCmd = strdup(cmd[0]);
+    for(int i = 1; cmd[i] != NULL; i++){
+                fullCmd = realloc(fullCmd, strlen(fullCmd) + strlen(cmd[i]) + 2); // +2 for the space and null terminator
+                strcat(fullCmd, " ");
+                strcat(fullCmd, cmd[i]);
+            }
+    return fullCmd;
 }
 /*****************************/
 /*****************************/
@@ -320,32 +336,16 @@ void pwdCommand(char** args){
 }
 /*****************************/
 /*****************************/
+void clearDirectories(char* list){
+    for(int i = 0; i < strlen(list); i++){
+        free(list[i]);
+    }
+}
 void pathCommand(char** args){
     //implement path
     if (args[1] == NULL){
         write(STDERR_FILENO, error_message, strlen(error_message));
-        for(int i = 0; i < strlen(directories); i++){
-           directories[i] = NULL;
-       }
-
-    }
-    else if (args[1] != NULL){
-       printf("path command\n");
-       for(int i = 0; i < strlen(directories); i++){
-           directories[i] = NULL;
-       }
-
-         for(int i = 1; args[i] != NULL; i++){
-            if (directories[i] == NULL){
-                char * pathNM = strdup(args[i]);
-                directories[i] = pathNM;
-            }
-         }
-        
-    }
-    else if (strcmp(args[1], "reset") == 0){
-       char * directories[] = {"/bin/", "/usr/bin/", "/usr/local/bin", NULL};
-       }
+        clearDirectories(directories);
     }
 
-
+}
