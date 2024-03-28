@@ -249,7 +249,7 @@ void exitCommand(){
 /*****************************/
 void killCommand(char** args){
     if(args[1] == NULL){
-        fprintf(stderr, "gush: expected argument to \"kill\"\n");
+        write(STDERR_FILENO, error_message, strlen(error_message));
     } else {
         if(kill(atoi(args[1]), SIGKILL) != 0){
             perror("gush");
