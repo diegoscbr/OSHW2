@@ -11,7 +11,7 @@ void gush_loop();
 char* readLine();
 char** divideLine(char* line); //parse the line into tokens and return an array of the tokens
 void executeCommand(char** argumentsArray);
-void pathExec(char** args);
+void pathExec(char** args, char* cmd);
 char* getFullCommand(char** cmd);
 void builtInExec(char** args);
 //implementations of cd, exit, kill, history, pwd, path are auxilaries to builtInExec
@@ -65,7 +65,7 @@ void gush_loop(){
         if (cmdType == 0){
             builtInExec(argsArr);
         } else if (cmdType == 1){
-            pathExec(argsArr);
+            pathExec(argsArr, argsArr[0]);
         }
         else if (cmdType == 2){
             char* execHist = parseHistory(argsArr);
@@ -74,8 +74,9 @@ void gush_loop(){
             if (cmdTypeHist == 0){
                 builtInExec(histArr);
             } else if (cmdTypeHist == 1){
-                printf("path of !\n");
-                pathExec(histArr);
+                printf("histArr[0]:\n"); //output /bin/ls
+                printf("%s\n", histArr[0]);
+                pathExec(histArr, histArr[0]);
                 printf("should have executed\n");
             }
             free(histArr);
@@ -168,7 +169,7 @@ int isBuiltIn(char* cmd){
     }
     for(int i = 0; historyCommands[i] != NULL; i++){
         if(strcmp(cmd, historyCommands[i]) == 0){
-            printf("history command found\n");
+            //printf("history command found\n");
             return historyType;
         }
     }
@@ -190,12 +191,12 @@ int isPathOrBuiltIn(char* cmd){ //checks just path or built in
 }
 /*****************************/
 /*****************************/
-void pathExec(char** argArr){
+void pathExec(char** argArr, char* cmd){
         for (int i = 0; directories[i] != NULL; i++) {
-            char* path = malloc(strlen(directories[i]) + strlen(argArr[0]) + 1);
+            char* path = malloc(strlen(directories[i]) + strlen(cmd) + 1);
             strcpy(path, directories[i]);
             strcat(path, "/");
-            strcat(path, argArr[0]);
+            strcat(path, cmd);
             if (access(path, X_OK) == 0) {
                 argArr[0] = path;
                 executeCommand(argArr);
