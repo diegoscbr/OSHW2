@@ -304,7 +304,7 @@ char* parseHistory(char** args){
         }    
     }
 }//end of parseHistory
-
+//expand to 20
 /*****************************/
 /*****************************/
 void pwdCommand(char** args){
@@ -322,5 +322,12 @@ void pwdCommand(char** args){
 /*****************************/
 void pathCommand(char** args){
     //implement path
+    if (args[1] == NULL){
+        write(STDERR_FILENO, error_message, strlen(error_message));
+    }
+    else{
+       printf("path command\n");
+        
+    }
 }
 
