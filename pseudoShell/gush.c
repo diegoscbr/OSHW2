@@ -143,6 +143,37 @@ char** divideLine(char* line){
 }
 /*****************************/
 /*****************************/
+void handleOutputRedirection(char** args, int redirIndex) {
+    char* target = strdup(args[redirIndex + 1]);
+    int fd = open(target, O_WRONLY | O_CREAT | O_TRUNC, 0777);
+    if (fd < 0){
+        write(STDERR_FILENO, error_message, strlen(error_message));
+        exit(EXIT_FAILURE);
+    }
+    if (dup2(fd, STDOUT_FILENO) == -1){
+        perror("dup2");
+        exit(EXIT_FAILURE);
+    }
+    close(fd);
+    args[redirIndex] = NULL;
+}
+
+void handleInputRedirection(char** args, int redirIndex) {
+    char* source = strdup(args[redirIndex + 1]);
+    int fd = open(source, O_RDONLY, 0777);
+    if (fd < 0){
+        write(STDERR_FILENO, error_message, strlen(error_message));
+        exit(EXIT_FAILURE);
+    }
+    if (dup2(fd, STDIN_FILENO) == -1){
+        perror("dup2");
+        exit(EXIT_FAILURE);
+    }
+    close(fd);
+    args[redirIndex] = NULL;
+}
+/*****************************/
+/*****************************/
 void executeCommand(char** args) {
     pid_t pid = fork();
     if (pid < 0) {
@@ -153,36 +184,16 @@ void executeCommand(char** args) {
         int check = containsRedirectionOperator(args);
         printf("check: %d\n", check);
         int redirIndex = findRedirectionOperator(args);
-        if (check == 1){
-            char* target = strdup(args[redirIndex + 1]);
-            printf("redirIndex: %d\n", redirIndex);
-            printf("Target--> args[redirIndex + 1]: %s\n", target); 
-            int fd = open(target, O_WRONLY | O_CREAT | O_TRUNC, 0777);
-            if (fd < 0){
-                write(STDERR_FILENO, error_message, strlen(error_message));
-                exit(EXIT_FAILURE);
-            }
-            int fd2 = dup2(fd, STDOUT_FILENO);
-            close(fd);
-            
-            args[redirIndex] = NULL;
-            (execve(args[0], args, envp));
-             close(fd);
-        }
-        else if (check == 2){ //stdin redirection
-            char* target = strdup(args[redirIndex + 1]);
-            printf("redirIndex: %d\n", redirIndex);
-            printf("Target--> args[redirIndex + 1]: %s\n", target);
-            int fd = open(target, O_RDONLY, 0777);
-            if (fd < 0){
-                write(STDERR_FILENO, error_message, strlen(error_message));
-                exit(EXIT_FAILURE);
-            }
-            int fd2 = dup2(fd, STDIN_FILENO);
-            close(fd);
-            args[redirIndex] = NULL;
-            (execve(args[0], args, envp));
-            close(fd);
+        switch (check)
+        {
+        case 1:
+            handleOutputRedirection(args, redirIndex);
+            break;
+        case 2: // stdin redirection
+            handleInputRedirection(args, redirIndex);
+            break;
+        default:
+            break;
         }
         //callss execve if no redirection to stdout
         if (execve(args[0], args, envp) == -1) {
@@ -398,7 +409,7 @@ void pathCommand(char** args){
 /*****************************/
 int findRedirectionOperator(char** args) {
     for (int i = 0; args[i] != NULL; i++) {
-        if (strcmp(args[i], ">") == 0) {
+        if (strcmp(args[i], ">") == 0 || strcmp(args[i], "<") == 0){
             return i;
         }
     }
