@@ -64,6 +64,11 @@ void gush_loop(){
         //initially reado of line
         line = readLine();
         argsArr = divideLine(line); //parse the line into tokens array
+        if (argsArr == NULL || argsArr[0] == NULL)
+        {
+            free(line);
+            continue;
+        }
         int cmdType = isBuiltIn(argsArr[0]);
         if (cmdType == 0){
             builtInExec(argsArr);
@@ -104,7 +109,6 @@ char* readLine() {
 char** divideLine(char* line){
     int capacity = 10;
     int size = 0;
-
     char** tokArr = malloc(capacity * sizeof(char*));
     if (tokArr == NULL){
         write(STDERR_FILENO, error_message, strlen(error_message));
@@ -165,11 +169,13 @@ void executeCommand(char** args) {
             (execve(args[0], args, envp));
              close(fd);
         }
+        //calss execve if no redirection to stdout
         if (execve(args[0], args, envp) == -1) {
-            perror("execve failed");
+            write(STDERR_FILENO, error_message, strlen(error_message));
             exit(EXIT_FAILURE);
         }
-    } else {
+    } else 
+     {
         int status;
         do {
             waitpid(pid, &status, WUNTRACED);
