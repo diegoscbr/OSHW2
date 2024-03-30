@@ -169,7 +169,22 @@ void executeCommand(char** args) {
             (execve(args[0], args, envp));
              close(fd);
         }
-        //calss execve if no redirection to stdout
+        else if (check == 2){ //stdin redirection
+            char* target = strdup(args[redirIndex + 1]);
+            printf("redirIndex: %d\n", redirIndex);
+            printf("Target--> args[redirIndex + 1]: %s\n", target);
+            int fd = open(target, O_RDONLY, 0777);
+            if (fd < 0){
+                write(STDERR_FILENO, error_message, strlen(error_message));
+                exit(EXIT_FAILURE);
+            }
+            int fd2 = dup2(fd, STDIN_FILENO);
+            close(fd);
+            args[redirIndex] = NULL;
+            (execve(args[0], args, envp));
+            close(fd);
+        }
+        //callss execve if no redirection to stdout
         if (execve(args[0], args, envp) == -1) {
             write(STDERR_FILENO, error_message, strlen(error_message));
             exit(EXIT_FAILURE);
@@ -404,6 +419,13 @@ int containsRedirectionOperator(char** args){
     for (int i = 0; args[i] != NULL; i++) {
         if (strcmp(args[i], ">") == 0) {
             return 1;
+        } //stdin case
+        else if (strcmp(args[i], "<") == 0) {
+            return 2;
+        }//stdout and std in redirection 
+        else if ((strcmp(args[i], "<") == 0)&& (strcmp(args[i+2], ">")== 0)  ) 
+         {
+            return 3; 
         }
     }
     return 0;
