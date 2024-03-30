@@ -1,0 +1,18 @@
+total 68
+-rw-rw-rw- 1 codespace codespace   201 Mar 21 05:49 Makefile
+-rwxrwxrwx 1 codespace codespace 23544 Mar 30 15:42 gush
+-rw-rw-rw- 1 codespace codespace 11845 Mar 30 15:42 gush.c
+-rw-rw-rw- 1 codespace codespace 14880 Mar 30 15:42 gush.o
+-rw-rw-rw- 1 codespace codespace  2093 Mar 26 04:16 histList.c
+-rw-rw-rw- 1 codespace codespace   446 Mar 23 01:07 histList.h
+-rw-rw-rw- 1 codespace codespace  3216 Mar 30 15:42 histList.o
+-rw-r--r-- 1 codespace codespace     0 Mar 30 15:42 output.txt
+gush>Makefile
+gush
+gush.c
+gush.o
+histList.c
+histList.h
+histList.o
+output.txt
+gush>

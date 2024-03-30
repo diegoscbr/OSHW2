@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <sys/wait.h>
 #include "histList.h"
 #define SIGKILL 9
@@ -23,13 +24,17 @@ void pwdCommand(char** args);
 void pathCommand(char** args);
 
 
+
+
 const char error_message[30] = "An error has occurred\n";
 
 const char* builtInCommands[] = {"cd", "exit", "kill", "history", "pwd", "path", NULL};
 const char* historyCommands[] = {"!1", "!2", "!3", "!4", "!5", "!6", "!7", "!8", "!9", "!10", "!11", "!12", "!13", "!14", "!15", "!16", "!17", "!18", "!19", "!20", NULL};
 int isBuiltIn(char* cmd);
 int isPathOrBuiltIn(char* cmd);
-
+int findRedirectionOperator(char** args);
+int containsRedirectionOperator(char** args);
+int argArrayLength(char** args);
 List historyList = {NULL, NULL, 0};
 char* parseHistory(char** args);
 
@@ -61,6 +66,13 @@ void gush_loop(){
         //initially reado of line
         line = readLine();
         argsArr = divideLine(line); //parse the line into tokens array
+        int check = containsRedirectionOperator(argsArr);
+        printf("check: %d\n", check);
+        int redirIndex = findRedirectionOperator(argsArr);
+        printf("redirIndex: %d\n", redirIndex);
+        if (check == 1){
+            argsArr[redirIndex] = NULL;
+        }
         int cmdType = isBuiltIn(argsArr[0]);
         if (cmdType == 0){
             builtInExec(argsArr);
@@ -140,11 +152,11 @@ void executeCommand(char** args) {
     pid_t pid = fork();
 
 
-    if (pid == -1) {
-        fprintf(stderr, "fork failed\n");
+    if (pid < 0) {
+        write(STDERR_FILENO, error_message, strlen(error_message));
         exit(EXIT_FAILURE);
     } else if (pid == 0) {
-        char* envp[] = { NULL };
+        char* envp[] = {NULL};
         if (execve(args[0], args, envp) == -1) {
             perror("execve failed");
             exit(EXIT_FAILURE);
@@ -342,6 +354,8 @@ void clearDirectories(char* list){
         free(list[i]);
     }
 }
+/*****************************/
+/*****************************/
 void pathCommand(char** args){
     //implement path
     if (args[1] == NULL){
@@ -349,4 +363,34 @@ void pathCommand(char** args){
         clearDirectories(directories);
     }
 
+}
+
+/*****************************/
+/*****************************/
+int findRedirectionOperator(char** args) {
+    for (int i = 0; args[i] != NULL; i++) {
+        if (strcmp(args[i], ">") == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+/*****************************/
+/*****************************/
+int argArrayLength(char** args){
+    int i = 0;
+    while(args[i] != NULL){
+        i++;
+    }
+    return i;
+}
+/*****************************/
+/*****************************/
+int containsRedirectionOperator(char** args){
+    for (int i = 0; args[i] != NULL; i++) {
+        if (strcmp(args[i], ">") == 0) {
+            return 1;
+        }
+    }
+    return 0;
 }
