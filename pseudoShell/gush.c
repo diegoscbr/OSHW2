@@ -64,15 +64,6 @@ void gush_loop(){
         //initially reado of line
         line = readLine();
         argsArr = divideLine(line); //parse the line into tokens array
-        int check = containsRedirectionOperator(argsArr);
-        printf("check: %d\n", check);
-        int redirIndex = findRedirectionOperator(argsArr);
-        printf("redirIndex: %d\n", redirIndex);
-        if (check == 1){
-            outFile = argsArr[redirIndex + 1];
-            printf("outFile: %s\n", outFile);
-            argsArr[redirIndex] = NULL;
-        }
         int cmdType = isBuiltIn(argsArr[0]);
         if (cmdType == 0){
             builtInExec(argsArr);
@@ -156,19 +147,23 @@ void executeCommand(char** args) {
     } else if (pid == 0) {
         char* envp[] = {NULL};
         int check = containsRedirectionOperator(args);
+        printf("check: %d\n", check);
         int redirIndex = findRedirectionOperator(args);
         if (check == 1){
-            int fd = open(args[redirIndex + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (fd == -1){
-                perror("open");
+            char* target = strdup(args[redirIndex + 1]);
+            printf("redirIndex: %d\n", redirIndex);
+            printf("Target--> args[redirIndex + 1]: %s\n", target); 
+            int fd = open(target, O_WRONLY | O_CREAT | O_TRUNC, 0777);
+            if (fd < 0){
+                write(STDERR_FILENO, error_message, strlen(error_message));
                 exit(EXIT_FAILURE);
             }
-            if (dup2(fd, STDOUT_FILENO) == -1){
-                perror("dup2");
-                exit(EXIT_FAILURE);
-            }
+            int fd2 = dup2(fd, STDOUT_FILENO);
             close(fd);
+            
             args[redirIndex] = NULL;
+            (execve(args[0], args, envp));
+             close(fd);
         }
         if (execve(args[0], args, envp) == -1) {
             perror("execve failed");

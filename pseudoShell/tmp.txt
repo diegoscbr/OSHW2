@@ -1,0 +1,10 @@
+total 72
+-rw-rw-rw- 1 codespace codespace   201 Mar 21 05:49 Makefile
+-rwxrwxrwx 1 codespace codespace 23544 Mar 30 17:18 gush
+-rw-rw-rw- 1 codespace codespace 11971 Mar 30 17:18 gush.c
+-rw-rw-rw- 1 codespace codespace 15152 Mar 30 17:18 gush.o
+-rw-rw-rw- 1 codespace codespace  2093 Mar 26 04:16 histList.c
+-rw-rw-rw- 1 codespace codespace   446 Mar 23 01:07 histList.h
+-rw-rw-rw- 1 codespace codespace  3216 Mar 30 17:18 histList.o
+-rwxrwxrwx 1 codespace codespace   498 Mar 30 17:18 newFile.txt
+-rwxrwxrwx 1 codespace codespace     0 Mar 30 17:21 tmp.txt
