@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include "histList.h"
 #define SIGKILL 9
+#define MAX_LINE 1024
 
 void gush_loop();
 char* readLine();
@@ -59,7 +60,6 @@ int main(int argc, char* argv[]){
 void gush_loop(){
     char* line; //line entered by user
     char** argsArr; //array of tokens
-    char* outFile;
     int EXIT_FLG = 0;
     do{
         printf("gush>");
@@ -186,11 +186,28 @@ void handleInputandOutputRedirection(char** args, int* redirIndecies){
      exit(EXIT_FAILURE);
  }
  if(dup2(fd_input, STDIN_FILENO) == -1 || dup2(fd_output, STDOUT_FILENO) == -1){
-     perror("dup2");
+     write(STDERR_FILENO, error_message, strlen(error_message));
      exit(EXIT_FAILURE);
  }
  close(fd_input);
  close(fd_output);
+
+}
+/*****************************/
+/*****************************/
+char ** removeRedirectionOperators(char** args, int* redirIndex) {
+    int j = 0;
+    char** newArgs = malloc(sizeof(char*) * MAX_LINE/2+1);
+    for (int i = 0; args[i] != NULL; i++) {
+        if (i != redirIndex[0] && i != redirIndex[0] + 1 && i != redirIndex[1] && i != redirIndex[1] + 1) {
+            newArgs[j] = args[i];
+            j++;
+        }
+    }
+    newArgs[j] = NULL;
+    free(args);
+    args = newArgs;
+    return args;
 }
 /*****************************/
 /*****************************/
@@ -202,7 +219,6 @@ void executeCommand(char** args) {
     } else if (pid == 0) {
         char* envp[] = {NULL};
         int check = containsRedirectionOperator(args);
-        printf("check: %d\n", check);
         int redirIndex = findRedirectionOperator(args);
 
         if (check == 1) {
@@ -210,12 +226,11 @@ void executeCommand(char** args) {
         } else if (check == 2) { // stdin redirection
             handleInputRedirection(args, redirIndex);
         } else if (check == 3) {
-            printf("both redirection\n");
             int *both = findBothIndex(args);
-            printf("both[0]: %d\n", both[0]);
-            printf("both[1]: %d\n", both[1]);
             handleInputandOutputRedirection(args, both);
+            args = removeRedirectionOperators(args, both);
             free(both);
+
         }   
         //calls execve if no redirection to stdout
         if (execve(args[0], args, envp) == -1) {
@@ -414,6 +429,7 @@ void pwdCommand(char** args){
 void clearDirectories(char* list){
     for(int i = 0; i < strlen(list); i++){
         free(list[i]);
+        list[i] = NULL;
     }
 }
 /*****************************/
