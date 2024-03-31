@@ -174,6 +174,11 @@ void handleInputRedirection(char** args, int redirIndex) {
 }
 /*****************************/
 /*****************************/
+void handleInputandOutputRedirection(char** args, int redirIndex){
+ 
+}
+/*****************************/
+/*****************************/
 void executeCommand(char** args) {
     pid_t pid = fork();
     if (pid < 0) {
@@ -191,6 +196,9 @@ void executeCommand(char** args) {
             break;
         case 2: // stdin redirection
             handleInputRedirection(args, redirIndex);
+            break;
+        case 3:
+            
             break;
         default:
             break;
@@ -427,17 +435,24 @@ int argArrayLength(char** args){
 /*****************************/
 /*****************************/
 int containsRedirectionOperator(char** args){
+    int inputRedirect = 0;
+    int outputRedirect = 0;
     for (int i = 0; args[i] != NULL; i++) {
        if (strcmp(args[i], ">") == 0) {
-            return 1;
+            outputRedirect = 1;
         } //stdin case
         else if (strcmp(args[i], "<") == 0) {
-            return 2;
-        }//stdout and std in redirection 
-         else if ((strcmp(args[i], "<") == 0)&& (strcmp(args[i+2], ">")== 0)  ) 
-        {
-            return 3; 
-        }
+            inputRedirect = 1;
+        }//stdout and std and redirection 
     }
-    return 0;
+    if(inputRedirect == 1 && outputRedirect == 1){
+        return 3;
+    }
+    else if(inputRedirect == 1){
+        return 2;
+    }
+    else if(outputRedirect == 1){
+        return 1;
+    }
+    return 0; //error case
 }
