@@ -1,14 +1,11 @@
-total 92
--rw-rw-rw-  1 codespace codespace   201 Mar 21 05:49 Makefile
--rwxrwxrwx  1 codespace codespace 23544 Mar 30 20:47 gush
--rw-rw-rw-  1 codespace codespace 13038 Mar 30 20:47 gush.c
--rw-rw-rw-  1 codespace codespace 16080 Mar 30 20:47 gush.o
--rw-rw-rw-  1 codespace codespace  2093 Mar 26 04:16 histList.c
--rw-rw-rw-  1 codespace codespace   446 Mar 23 01:07 histList.h
--rw-rw-rw-  1 codespace codespace  3216 Mar 30 20:47 histList.o
--rw-rw-rw-  1 codespace codespace    70 Mar 30 17:22 message.txt
-drwxrwxrwx+ 2 codespace codespace  4096 Mar 30 19:47 nested
--rwxrwxrwx  1 codespace codespace     0 Mar 30 20:48 new.txt
--rwxrwxrwx  1 codespace codespace   498 Mar 30 17:18 newFile.txt
--rwxrwxrwx  1 codespace codespace  3864 Mar 30 19:47 out.txt
--rwxrwxrwx  1 codespace codespace  3658 Mar 30 20:05 tmp.txt
+total 84
+-rw-rw-rw- 1 codespace codespace   201 Mar 21 05:49 Makefile
+-rwxrwxrwx 1 codespace codespace 23640 Mar 31 01:07 gush
+-rw-rw-rw- 1 codespace codespace 13145 Mar 31 01:04 gush.c
+-rw-rw-rw- 1 codespace codespace 16400 Mar 31 01:07 gush.o
+-rw-rw-rw- 1 codespace codespace  2093 Mar 26 04:16 histList.c
+-rw-rw-rw- 1 codespace codespace   446 Mar 23 01:07 histList.h
+-rw-rw-rw- 1 codespace codespace  3216 Mar 31 01:07 histList.o
+-rw-rw-rw- 1 codespace codespace    70 Mar 30 17:22 message.txt
+-rwxrwxrwx 1 codespace codespace     0 Mar 31 01:08 new.txt
+-rwxrwxrwx 1 codespace codespace   561 Mar 31 01:00 output.txt

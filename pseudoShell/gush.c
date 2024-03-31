@@ -428,14 +428,14 @@ int argArrayLength(char** args){
 /*****************************/
 int containsRedirectionOperator(char** args){
     for (int i = 0; args[i] != NULL; i++) {
-        if (strcmp(args[i], ">") == 0) {
+       if (strcmp(args[i], ">") == 0) {
             return 1;
         } //stdin case
         else if (strcmp(args[i], "<") == 0) {
             return 2;
         }//stdout and std in redirection 
-        else if ((strcmp(args[i], "<") == 0)&& (strcmp(args[i+2], ">")== 0)  ) 
-         {
+         else if ((strcmp(args[i], "<") == 0)&& (strcmp(args[i+2], ">")== 0)  ) 
+        {
             return 3; 
         }
     }
