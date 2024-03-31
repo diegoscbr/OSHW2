@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <signal.h>
 #include <sys/wait.h>
 #include "histList.h"
 #define SIGKILL 9
@@ -216,7 +217,7 @@ void executeCommand(char** args) {
             handleInputandOutputRedirection(args, both);
             free(both);
         }   
-        //callss execve if no redirection to stdout
+        //calls execve if no redirection to stdout
         if (execve(args[0], args, envp) == -1) {
             write(STDERR_FILENO, error_message, strlen(error_message));
             exit(EXIT_FAILURE);
@@ -489,7 +490,6 @@ int* findBothIndex(char** args) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-
     both[0] = STDIN;
     both[1] = STDOUT;
     return both;
