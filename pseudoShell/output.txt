@@ -1,0 +1,10 @@
+Makefile
+gush
+gush.c
+gush.o
+histList.c
+histList.h
+histList.o
+message.txt
+output.txt
+test.txt

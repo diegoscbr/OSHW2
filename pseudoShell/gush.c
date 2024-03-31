@@ -33,6 +33,7 @@ const char* historyCommands[] = {"!1", "!2", "!3", "!4", "!5", "!6", "!7", "!8",
 int isBuiltIn(char* cmd);
 int isPathOrBuiltIn(char* cmd);
 int findRedirectionOperator(char** args);
+int* findBothIndex(char** args);
 int containsRedirectionOperator(char** args);
 int argArrayLength(char** args);
 List historyList = {NULL, NULL, 0};
@@ -174,8 +175,21 @@ void handleInputRedirection(char** args, int redirIndex) {
 }
 /*****************************/
 /*****************************/
-void handleInputandOutputRedirection(char** args, int redirIndex){
- 
+void handleInputandOutputRedirection(char** args, int* redirIndecies){
+ //remove redirection operators
+ int fd_input, fd_output;
+ fd_input = open(args[(redirIndecies[0]) + 1], O_RDONLY);
+ fd_output = open(args[(redirIndecies[1]) + 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+ if (fd_input < 0 || fd_output < 0){
+     write(STDERR_FILENO, error_message, strlen(error_message));
+     exit(EXIT_FAILURE);
+ }
+ if(dup2(fd_input, STDIN_FILENO) == -1 || dup2(fd_output, STDOUT_FILENO) == -1){
+     perror("dup2");
+     exit(EXIT_FAILURE);
+ }
+ close(fd_input);
+ close(fd_output);
 }
 /*****************************/
 /*****************************/
@@ -189,20 +203,19 @@ void executeCommand(char** args) {
         int check = containsRedirectionOperator(args);
         printf("check: %d\n", check);
         int redirIndex = findRedirectionOperator(args);
-        switch (check)
-        {
-        case 1:
+
+        if (check == 1) {
             handleOutputRedirection(args, redirIndex);
-            break;
-        case 2: // stdin redirection
+        } else if (check == 2) { // stdin redirection
             handleInputRedirection(args, redirIndex);
-            break;
-        case 3:
-            
-            break;
-        default:
-            break;
-        }
+        } else if (check == 3) {
+            printf("both redirection\n");
+            int *both = findBothIndex(args);
+            printf("both[0]: %d\n", both[0]);
+            printf("both[1]: %d\n", both[1]);
+            handleInputandOutputRedirection(args, both);
+            free(both);
+        }   
         //callss execve if no redirection to stdout
         if (execve(args[0], args, envp) == -1) {
             write(STDERR_FILENO, error_message, strlen(error_message));
@@ -456,3 +469,29 @@ int containsRedirectionOperator(char** args){
     }
     return 0; //error case
 }
+/*****************************/
+/*****************************/
+int* findBothIndex(char** args) {
+    int STDIN = -1; 
+    int STDOUT = -1; 
+    for (int i = 0; args[i] != NULL; i++) {
+        if (strcmp(args[i], "<") == 0) {
+            STDIN = i; // Update STDIN index
+        }
+    }
+    for (int j = 0; args[j] != NULL; j++) {
+        if (strcmp(args[j], ">") == 0) {
+            STDOUT = j; 
+        }
+    }
+    int* both = malloc(2 * sizeof(int));
+    if (both == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    both[0] = STDIN;
+    both[1] = STDOUT;
+    return both;
+}
+    
