@@ -211,12 +211,22 @@ char ** removeRedirectionOperators(char** args, int* redirIndex) {
 }
 /*****************************/
 /*****************************/
+int getPipeIndex(char** args) {
+    for (int i = 0; args[i] != NULL; i++) {
+        if (strcmp(args[i], "|") == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+/*****************************/
+/*****************************/
 void executeCommand(char** args) {
     pid_t pid = fork();
     if (pid < 0) {
         write(STDERR_FILENO, error_message, strlen(error_message));
         exit(EXIT_FAILURE);
-    } else if (pid == 0) {
+    } else if (pid == 0) { //child process
         char* envp[] = {NULL};
         int check = containsRedirectionOperator(args);
         int redirIndex = findRedirectionOperator(args);
@@ -230,8 +240,62 @@ void executeCommand(char** args) {
             handleInputandOutputRedirection(args, both);
             args = removeRedirectionOperators(args, both);
             free(both);
+        }  else if (check == 4){
+            //handleSinglePipe(args);
+            int fd[2];
+            int pipeIndex = getPipeIndex(args);
 
-        }   
+
+            if (pipe(fd) == -1) {
+                write(STDERR_FILENO, error_message, strlen(error_message));
+                exit(EXIT_FAILURE);
+            }
+            int pid1 = fork();
+            if (pid1 < 0){
+                write(STDERR_FILENO, error_message, strlen(error_message));
+                exit(EXIT_FAILURE); 
+            }
+            if (pid1 == 0){
+                //get contents of array before pipe
+                char** leftArgs = (char**)malloc(sizeof(char*) * (pipeIndex));;
+                for (int i = 0; i < pipeIndex; i++){
+                    leftArgs[i] = args[i];
+                    printf("leftArgs[i]: %s\n", leftArgs[i]);
+                }
+                leftArgs[pipeIndex] = NULL;
+                dup2(fd[1], STDOUT_FILENO);
+                close(fd[0]);
+                close(fd[1]);
+                execve(leftArgs[0], leftArgs, envp);
+            }//end of pid1 == 0
+
+            int pid2 = fork();
+            if (pid2 < 0){
+                write(STDERR_FILENO, error_message, strlen(error_message));
+                exit(EXIT_FAILURE); 
+            }
+            if (pid2 == 0){
+                //get contents of array after pipe
+                char **rightArgs = (char**)malloc(sizeof(char*) * (argArrayLength(args) - pipeIndex));
+               int j = 0;
+                for (int i = pipeIndex + 1; args[i] != NULL; i++){
+                    rightArgs[j] = args[i];
+                    printf("rightArgs[j]: %s\n", rightArgs[j]);
+                    j++;
+                }
+                rightArgs[j] = NULL;
+                dup2(fd[0], STDIN_FILENO);
+                close(fd[0]);
+                close(fd[1]);
+                execve(rightArgs[0], rightArgs, envp);
+
+            }
+            close(fd[0]);
+            close(fd[1]);
+
+            waitpid(pid1, NULL, 0);
+            waitpid(pid2, NULL, 0);
+        }//end of check == 4 
         //calls execve if no redirection to stdout
         if (execve(args[0], args, envp) == -1) {
             write(STDERR_FILENO, error_message, strlen(error_message));
@@ -467,6 +531,7 @@ int argArrayLength(char** args){
 int containsRedirectionOperator(char** args){
     int inputRedirect = 0;
     int outputRedirect = 0;
+    int pipeRedirect = 0;
     for (int i = 0; args[i] != NULL; i++) {
        if (strcmp(args[i], ">") == 0) {
             outputRedirect = 1;
@@ -474,6 +539,9 @@ int containsRedirectionOperator(char** args){
         else if (strcmp(args[i], "<") == 0) {
             inputRedirect = 1;
         }//stdout and std and redirection 
+        else if (strcmp(args[i], "|") == 0) {
+            pipeRedirect = 1;
+        }
     }
     if(inputRedirect == 1 && outputRedirect == 1){
         return 3;
@@ -483,6 +551,9 @@ int containsRedirectionOperator(char** args){
     }
     else if(outputRedirect == 1){
         return 1;
+    }
+    else if(pipeRedirect == 1){
+        return 4; //pipe case
     }
     return 0; //error case
 }
