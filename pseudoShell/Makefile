@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra
 
-SRCS = gush.c histList.c
+SRCS = gush.c histList.c 
 OBJS = $(SRCS:.c=.o)
 
 all: gush

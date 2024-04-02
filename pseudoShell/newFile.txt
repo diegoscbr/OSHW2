@@ -1,0 +1,13 @@
+Makefile
+gush
+gush.c
+gush.o
+histList.c
+histList.h
+histList.o
+message.txt
+newFile.txt
+outFile.txt
+output.txt
+test.txt
+tmp.txt

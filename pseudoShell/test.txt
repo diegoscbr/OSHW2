@@ -1,3 +1,1 @@
-   111	LINE	1	Peace on earth
-   311	LINE	2	Joy to the world
-   511	LINE	3	hack free or die
+3

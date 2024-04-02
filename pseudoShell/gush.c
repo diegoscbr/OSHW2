@@ -12,7 +12,7 @@
 
 void gush_loop();
 char* readLine();
-char** divideLine(char* line); //parse the line into tokens and return an array of the tokens
+char** divideLine(char* line); 
 void executeCommand(char** argumentsArray);
 void pathExec(char** args, char* cmd);
 char* getFullCommand(char** cmd);
@@ -24,7 +24,7 @@ void killCommand(char** args);
 void historyCommand();
 void pwdCommand(char** args);
 void pathCommand(char** args);
-
+List historyList = {NULL, NULL, 0};
 
 
 
@@ -38,7 +38,7 @@ int findRedirectionOperator(char** args);
 int* findBothIndex(char** args);
 int containsRedirectionOperator(char** args);
 int argArrayLength(char** args);
-List historyList = {NULL, NULL, 0};
+//List historyList = {NULL, NULL, 0};
 char* parseHistory(char** args);
 
 char* directories[] = {"/bin", NULL};
@@ -263,10 +263,20 @@ void executeCommand(char** args) {
                     printf("leftArgs[i]: %s\n", leftArgs[i]);
                 }
                 leftArgs[pipeIndex] = NULL;
+
+                printf("contents of leftArgs:");
+                for(int i = 0; leftArgs[i] != NULL; i++){
+                    printf("%s\n", leftArgs[i]);
+                }
+                 printf("calling execve leftArgs[0]: %s\n", leftArgs[0]);
                 dup2(fd[1], STDOUT_FILENO);
                 close(fd[0]);
                 close(fd[1]);
-                execve(leftArgs[0], leftArgs, envp);
+               
+                if(execve(leftArgs[0], leftArgs, envp) == -1){
+                    write(STDERR_FILENO, error_message, strlen(error_message));
+                    exit(EXIT_FAILURE);
+                }
             }//end of pid1 == 0
 
             int pid2 = fork();
@@ -287,7 +297,11 @@ void executeCommand(char** args) {
                 dup2(fd[0], STDIN_FILENO);
                 close(fd[0]);
                 close(fd[1]);
-                execve(rightArgs[0], rightArgs, envp);
+                printf("calling execve rightArgs[0]: %s\n", rightArgs[0]);
+                if(execve(rightArgs[0], rightArgs, envp) == -1){
+                    write(STDERR_FILENO, error_message, strlen(error_message));
+                    exit(EXIT_FAILURE);
+                }
 
             }
             close(fd[0]);
@@ -296,18 +310,16 @@ void executeCommand(char** args) {
             waitpid(pid1, NULL, 0);
             waitpid(pid2, NULL, 0);
         }//end of check == 4 
+
         //calls execve if no redirection to stdout
-        if (execve(args[0], args, envp) == -1) {
+        if ( execve(args[0], args, envp) == -1) {
             write(STDERR_FILENO, error_message, strlen(error_message));
             exit(EXIT_FAILURE);
         }
     } else 
      {
-        int status;
-        do {
-            waitpid(pid, &status, WUNTRACED);
-        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-    }
+        waitpid(pid, NULL, 0);
+     }
 }
 /*****************************/
 /*****************************/
@@ -473,8 +485,71 @@ char* parseHistory(char** args){
             return cmd;
         }    
     }
+    else if (strcmp(args[0], "!5") == 0){
+        if(searchList(&historyList, 4) == 0){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+        else{
+            char* cmd = searchList(&historyList, 4)->data;
+            printf("%s\n", cmd);
+            return cmd;
+        }    
+    }
+    else if (strcmp(args[0], "!6") == 0){
+        if(searchList(&historyList, 5) == 0){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+        else{
+            char* cmd = searchList(&historyList, 5)->data;
+            printf("%s\n", cmd);
+            return cmd;
+        }    
+    }
+    else if (strcmp(args[0], "!7") == 0){
+        if(searchList(&historyList, 6) == 0){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+        else{
+            char* cmd = searchList(&historyList, 6)->data;
+            printf("%s\n", cmd);
+            return cmd;
+        }    
+    }
+    else if (strcmp(args[0], "!8") == 0){
+        if(searchList(&historyList, 7) == 0){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+        else{
+            char* cmd = searchList(&historyList, 7)->data;
+            printf("%s\n", cmd);
+            return cmd;
+        }    
+    }
+    else if (strcmp(args[0], "!9") == 0){
+        if(searchList(&historyList, 8) == 0){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+        else{
+            char* cmd = searchList(&historyList, 8)->data;
+            printf("%s\n", cmd);
+            return cmd;
+        }    
+    }
+    else if (strcmp(args[0], "!10") == 0){
+        if(searchList(&historyList, 9) == 0){
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        }
+        else{
+            char* cmd = searchList(&historyList, 9)->data;
+            printf("%s\n", cmd);
+            return cmd;
+        }    
+    }
+    else{
+        write(STDERR_FILENO, error_message, strlen(error_message));
+    }
 }//end of parseHistory
-//expand to 20
+
 /*****************************/
 /*****************************/
 void pwdCommand(char** args){
@@ -572,7 +647,7 @@ int* findBothIndex(char** args) {
             STDOUT = j; 
         }
     }
-    int* both = malloc(2 * sizeof(int));
+    int* both = (int*)malloc(2 * sizeof(int));
     if (both == NULL) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
