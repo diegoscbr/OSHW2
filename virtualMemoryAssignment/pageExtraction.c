@@ -16,17 +16,16 @@
 void getPageNumberAndOffset(int virtualAddress, int *pageNumber, int *offset) {
     // Mask to extract the page number (VPN) - high-order 8 bits
     *pageNumber = (virtualAddress >> 8) & 0xFF;
-
     // Mask to extract the offset - low-order 8 bits
     *offset = virtualAddress & 0xFF;
 }
-
+int testAddress[] = {1, 256, 32768, 32769, 128, 65534, 33153};
 int main() {
     // Iterate over integers from 0 to 65535 (2^16 - 1)
-    for (int i = 0; i <= 65535; ++i) {
+    for (int i = 0; i <= 6; i++) {
         int pageNumber, offset;
-        getPageNumberAndOffset(i, &pageNumber, &offset);
-        printf("Virtual Address: %5d, Page Number: %3d, Offset: %3d\n", i, pageNumber, offset);
+        getPageNumberAndOffset(testAddress[i], &pageNumber, &offset);
+        printf("Virtual Address: %5d, Page Number: %3d, Offset: %3d\n", testAddress[i], pageNumber, offset);
     }
 
     return 0;
