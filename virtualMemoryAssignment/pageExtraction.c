@@ -13,19 +13,25 @@
 #define OFFSET_BITS 8 //8 bits
 #define PAGE_NUMBER_BITS 8 //8 bits
 
-void getPageNumberAndOffset(int virtualAddress, int *pageNumber, int *offset) {
-    // Mask to extract the page number (VPN) - high-order 8 bits
-    *pageNumber = (virtualAddress >> 8) & 0xFF;
-    // Mask to extract the offset - low-order 8 bits
-    *offset = virtualAddress & 0xFF;
+int getPageNuber(int virtualAddress) {
+    return (virtualAddress >> 8) & 0xFF;
 }
-int testAddress[] = {1, 256, 32768, 32769, 128, 65534, 33153};
+int getOffset(int virtualAddress) {
+    return virtualAddress & 0xFF;
+}
+int *setPageNumberAndOffset(int virtualAddress) {
+    int *pageAndOffset = (int *)malloc(2 * sizeof(int));
+    pageAndOffset[0] = getPageNuber(virtualAddress);
+    pageAndOffset[1] = getOffset(virtualAddress);
+    return pageAndOffset;
+}
+int testAddress[] = {1, 256, 512, 32769, 128, 65534, 33153};
 int main() {
-    // Iterate over integers from 0 to 65535 (2^16 - 1)
+
+    int* dataStore[7];
     for (int i = 0; i <= 6; i++) {
-        int pageNumber, offset;
-        getPageNumberAndOffset(testAddress[i], &pageNumber, &offset);
-        printf("Virtual Address: %5d, Page Number: %3d, Offset: %3d\n", testAddress[i], pageNumber, offset);
+        dataStore[i] = setPageNumberAndOffset(testAddress[i]);
+        printf("Virtual Address: %5d, Page Number: %3d, Offset: %3d\n", testAddress[i], dataStore[i][0], dataStore[i][1]);
     }
 
     return 0;
