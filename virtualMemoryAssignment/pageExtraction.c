@@ -13,35 +13,37 @@
 #define MEMO_SIZE PAGES * PAGE_SIZE
 #define BUF_SIZE 10
 
-int pagetable[PAGES];
+const char *file_name = "BACKING_STORE.bin";
+const char *output_file = "output.txt";
 signed char main_Memo[MEMO_SIZE];
 signed char *backing_ptr;
 
+int pagetable[PAGES];
+
+void initializePageTable(int *pageTable);
+int getPageNuber(int virtualAddress);
+int getOffset(int virtualAddress);
+long getFileSize(FILE *file);
+signed char *mapFileIntoMemory(const char *file_name);
+
+
 int main(int argc, const char *argv[]) {
-    if (argc != 2) {
-        printf("USAGE: <./a.out> <input file>\n");
-        exit(0);
-    }
-
-    for (int i = 0; i < PAGES; i++) {
-        pagetable[i] = -1;
-    }
-
-    const char *file_name = "BACKING_STORE.bin";
     const char *input_file = argv[1];
-    const char *output_file = "output.txt";
-    int backing_ptr_fd = open(file_name, O_RDONLY);
-    backing_ptr = mmap(0, MEMO_SIZE, PROT_READ, MAP_PRIVATE, backing_ptr_fd, 0);
+    if (argc != 2) {printf("USAGE: <./a.out> <input file>\n");exit(0);}
+    initializePageTable(pagetable);
+    backing_ptr = mapFileIntoMemory(file_name);
+    
     FILE *input_fp = fopen(input_file, "r");
     FILE *output_fp = fopen(output_file, "w");
     char buf[BUF_SIZE];
     unsigned char freePage = 0;
     int total_addr = 0, pageFault = 0;
-
+//this while loop should be a function that takes in the file pointer and the page table
     while (fgets(buf, BUF_SIZE, input_fp) != NULL) {
         int logical_addr = atoi(buf);
-        int offset = logical_addr & OFFSET_MASK;
-        int logical = (logical_addr >> OFFSET_BITS);
+        printf("Logical Address: %d\n", logical_addr);
+        int offset = getOffset(logical_addr);
+        int logical = getPageNuber(logical_addr);
         int physical = pagetable[logical];
 
         total_addr++;
@@ -61,13 +63,51 @@ int main(int argc, const char *argv[]) {
         signed char value = main_Memo[physical * PAGE_SIZE + offset];
 
         fprintf(output_fp, "Logical address: %d Physical address: %d Value: %d\n", logical_addr, physical_addr, value);
-    }
+    } //end while loop
 
     printf("Number of Translated Addresses = %d\n", total_addr);
     printf("Page faults = %d\n", pageFault);
     printf("Page Fault Rate = %.1f %%\n", ((float)pageFault / total_addr) * 100);
 
     return 0;
+}
+
+
+void initializePageTable(int *pageTable) {
+    for (int i = 0; i < PAGES; i++) {
+        pageTable[i] = -1;
+    }
+}
+
+long getFileSize(FILE *file) {
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    clearerr(file);
+    return file_size;
+}
+
+signed char *mapFileIntoMemory(const char *file_name) {
+    FILE *file = fopen(file_name, "rb");
+    if (file == NULL) {
+        perror("Failed to open file");
+        exit(EXIT_FAILURE);
+    }
+    long fileSize = getFileSize(file);
+    signed char *buffer = (signed char *)malloc(fileSize);
+    if (buffer == NULL) {
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
+    }
+
+    // Read the file into memory
+    size_t result = fread(buffer, 1, fileSize, file);
+    if (result != fileSize) {
+        perror("Failed to read file");
+        exit(EXIT_FAILURE);
+    }
+    fclose(file);
+    return buffer;
 }
 
 
