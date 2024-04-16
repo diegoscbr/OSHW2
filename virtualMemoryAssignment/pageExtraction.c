@@ -13,6 +13,9 @@
 #define OFFSET_BITS 8 //8 bits
 #define PAGE_NUMBER_BITS 8 //8 bits
 
+int* pagetable[PAGE_TABLE_ENTRIES];
+int tlb[TLB_SIZE];
+
 int getPageNuber(int virtualAddress) {
     return (virtualAddress >> 8) & 0xFF;
 }
