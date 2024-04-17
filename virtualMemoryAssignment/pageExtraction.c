@@ -23,14 +23,17 @@ int pagetable[PAGES];
 void initializePageTable(int *pageTable);
 int getPageNuber(int virtualAddress);
 int getOffset(int virtualAddress);
+int getDirtyBit(int virtualAddress);
 long getFileSize(FILE *file);
 signed char *populateSecondaryMem(const char *file_name);
 void outputMessage(int total_addr, int pageFault);
+void handlePageFault(int logicalPageNo, int *freePage, char *main_Memo, char *backing_ptr, int *pagetable);
+
 int main(int argc, const char *argv[]) {
     const char *input_file = argv[1];
     FILE *input_fp = fopen(input_file, "r"); //open address file
-    FILE *output_fp = fopen(output_file, "w");
-    
+    FILE *backingSTORE_fp = fopen(file_name, "rb"); //open backing store file
+    FILE *output_fp = fopen(output_file, "w");  
     if (argc != 2) {printf("USAGE: <./a.out> <input file>\n");exit(0);}
     initializePageTable(pagetable);
     backing_ptr = populateSecondaryMem(file_name);
@@ -43,25 +46,28 @@ int main(int argc, const char *argv[]) {
         int logical_addr = atoi(buf);
         printf("Logical Address: %d\n", logical_addr);
         int offset = getOffset(logical_addr);
-        int logical = getPageNuber(logical_addr); //page number
-        int physical = pagetable[logical]; //frame number at same index as page number
+        int logicalPageNo = getPageNuber(logical_addr); //page number
+        int physicalFrameNo = pagetable[logicalPageNo]; //frame number at same index as page number
 
         total_addr++;
 
-        if (physical == -1) { // Page Fault
-            pageFault++;
-            physical = freePage;
+
+        if (physicalFrameNo == -1) { // Page Fault
+            pageFault++; //increase page fault count
+            physicalFrameNo = freePage; 
             freePage++;
-            memcpy(main_Memo + physical * PAGE_SIZE, backing_ptr + logical * PAGE_SIZE, PAGE_SIZE);
-            pagetable[logical] = physical; //update page table
+            fseek(backingSTORE_fp, logicalPageNo * PAGE_SIZE, SEEK_SET);
+            fread(main_Memo + physicalFrameNo * PAGE_SIZE, sizeof(char), PAGE_SIZE, backingSTORE_fp);
+            pagetable[logicalPageNo] = physicalFrameNo; //update page table     
         }
-
-        int physical_addr = (physical << OFFSET_BITS) | offset;
-        signed char value = main_Memo[physical * PAGE_SIZE + offset];
-
-        fprintf(output_fp, "Logical address: %d Physical address: %d Value: %d\n", logical_addr, physical_addr, value);
+        int dirtyBit = getDirtyBit(logical_addr);
+        int physical_addr = (physicalFrameNo << OFFSET_BITS) | offset;
+        signed char value = main_Memo[physicalFrameNo * PAGE_SIZE + offset];
+//this can be replaced by a printf 
+        fprintf(output_fp, "Logical address: %d Physical address: %d Value: %d Dirty Bit: %d\n", logical_addr, physical_addr, value, dirtyBit);
     } //end while loop
     fclose(input_fp);
+    fclose(backingSTORE_fp);
     fclose(output_fp);
     outputMessage(total_addr, pageFault);
     return 0;
@@ -120,4 +126,7 @@ int *setPageNumberAndOffset(int virtualAddress) {
 void outputMessage(int total_addr, int pageFault) {
     printf("Number of Translated Addresses = %d\n", total_addr);
     printf("Page Fault Rate = %.1f %%\n", ((float)pageFault / total_addr) * 100);
+}
+int getDirtyBit(int virtualAddress) {
+    return (virtualAddress >> 16) & 0x1;
 }
