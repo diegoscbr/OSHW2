@@ -38,23 +38,32 @@ int main(int argc, const char *argv[]) {
     FILE *output_fp = fopen(output_file, "w");  
     if (argc != 2) {printf("USAGE: <./a.out> <input file>\n");exit(0);}
     initializePageTable(pagetable);
+    initializeTLB(TLB, TLB_SIZE);
     backing_ptr = populateSecondaryMem(file_name);
     
     unsigned char freePage = 0;
-    int total_addr = 0, pageFault = 0, dirtyBitCount = 0;
+    int total_addr = 0, pageFault = 0, dirtyBitCount = 0, tlbHits = 0, tlbMisses = 0;
 //this while loop should be a function that takes in the file pointer and the page table
 
  while (fgets(buf, BUF_SIZE, input_fp) != NULL) {
-        int logical_addr = atoi(buf);
+        int logical_addr = atoi(buf); //converts line read in to integer
         int offset = getOffset(logical_addr);
         int logicalPageNo = getPageNuber(logical_addr); //page number
 
-        //first we try to get phusical frame number from TLB
+        //first we try to get physical frame number from TLB
+        int physicalFrameNo = EMPTY;
+        for (int i = 0; i < TLB_SIZE; i++) {
+            if (TLB[i][0] == logicalPageNo) {
+                physicalFrameNo = TLB[i][1];
+                tlbHits++;
+                break;
+            }
+        } 
+        //at first iteration of while loop this should not work
 
-        int physicalFrameNo = pagetable[logicalPageNo]; //frame number at same index as page number
-        int dirtyBit = getDirtyBit(logical_addr); 
-        if(dirtyBit == 1) dirtyBitCount++;
-        total_addr++;
+
+         physicalFrameNo = pagetable[logicalPageNo]; //frame number at same index as page number
+       
 
 
         if (physicalFrameNo == -1) { // Page Fault
@@ -66,6 +75,10 @@ int main(int argc, const char *argv[]) {
             pagetable[logicalPageNo] = physicalFrameNo; //update page table     
         }
         
+        int dirtyBit = getDirtyBit(logical_addr); 
+        if(dirtyBit == 1) dirtyBitCount++;
+        total_addr++;
+
         int physical_addr = (physicalFrameNo << OFFSET_BITS) | offset;
         signed char value = main_Memo[physicalFrameNo * PAGE_SIZE + offset];
 //this can be replaced by a printf 
@@ -89,7 +102,9 @@ void initializePageTable(int *pageTable) {
 void initializeTLB(int tlb[][2], int rows) {
     for (int i = 0; i < rows; i++) {
         TLB[i][0] = EMPTY;
+        printf("TLB[%d][0] = %d\n", i, TLB[i][0]);
         TLB[i][1] = EMPTY;
+        printf("TLB[%d][1] = %d\n", i, TLB[i][1]);
     }
 }
 long getFileSize(FILE *file) {
