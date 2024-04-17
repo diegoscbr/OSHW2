@@ -64,7 +64,7 @@ int main(int argc, const char *argv[]) {
         int physical_addr = (physicalFrameNo << OFFSET_BITS) | offset;
         signed char value = main_Memo[physicalFrameNo * PAGE_SIZE + offset];
 //this can be replaced by a printf 
-        fprintf(output_fp, "Logical address: %d Physical address: %d Value: %d Dirty Bit: %d\n", logical_addr, physical_addr, value, dirtyBit);
+        fprintf(output_fp, "Logical address: %08x Physical address: %08x Value: %08x Dirty Bit: %d\n", logical_addr, physical_addr, value, dirtyBit);
     } //end while loop
     fclose(input_fp);
     fclose(backingSTORE_fp);
