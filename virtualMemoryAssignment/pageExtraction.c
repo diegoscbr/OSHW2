@@ -12,6 +12,8 @@
 #define OFFSET_MASK 255
 #define MEMO_SIZE PAGES * PAGE_SIZE
 #define BUF_SIZE 10
+#define TLB_SIZE 16
+#define EMPTY -1
 
 const char *file_name = "BACKING_STORE.bin";
 const char *output_file = "output.txt";
@@ -19,8 +21,8 @@ signed char main_Memo[MEMO_SIZE];
 signed char *backing_ptr;
 char buf[BUF_SIZE];
 int pagetable[PAGES];
-int TLB[16][2];
-void initializeTLB(int *TLB);
+int TLB[TLB_SIZE][2];
+void initializeTLB(int tlb[][2], int rows);
 void initializePageTable(int *pageTable);
 int getPageNuber(int virtualAddress);
 int getOffset(int virtualAddress);
@@ -46,6 +48,9 @@ int main(int argc, const char *argv[]) {
         int logical_addr = atoi(buf);
         int offset = getOffset(logical_addr);
         int logicalPageNo = getPageNuber(logical_addr); //page number
+
+        //first we try to get phusical frame number from TLB
+
         int physicalFrameNo = pagetable[logicalPageNo]; //frame number at same index as page number
         int dirtyBit = getDirtyBit(logical_addr); 
         if(dirtyBit == 1) dirtyBitCount++;
@@ -78,10 +83,15 @@ int main(int argc, const char *argv[]) {
 
 void initializePageTable(int *pageTable) {
     for (int i = 0; i < PAGES; i++) {
-        pageTable[i] = -1;
+        pageTable[i] = EMPTY;
     }
 }
-
+void initializeTLB(int tlb[][2], int rows) {
+    for (int i = 0; i < rows; i++) {
+        TLB[i][0] = EMPTY;
+        TLB[i][1] = EMPTY;
+    }
+}
 long getFileSize(FILE *file) {
     fseek(file, 0, SEEK_END); //gets position at end of file
     long fileSize = ftell(file); //gets the current position in the stream (last index of file stream = file size)
