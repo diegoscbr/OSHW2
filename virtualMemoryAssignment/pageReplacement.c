@@ -11,6 +11,8 @@
 #define BUF_SIZE 10
 #define TLB_SIZE 16
 #define EMPTY -1
+
+
 const char *file_name = "BACKING_STORE.bin";
 const char *output_file = "output.txt";
 signed char main_Memo[MEMO_SIZE];
@@ -18,6 +20,8 @@ signed char *backing_ptr;
 char buf[BUF_SIZE];
 int pagetable[PAGES];
 int TLB[TLB_SIZE][2];
+
+
 void initializeTLB(int tlb[][2], int rows);
 void initializePageTable(int *pageTable);
 int getPageNuber(int virtualAddress);
@@ -34,15 +38,18 @@ int main(int argc, const char *argv[]) {
     FILE *backingSTORE_fp = fopen(file_name, "rb"); //open backing store file
     FILE *output_fp = fopen(output_file, "w");  
     if (argc != 2) {printf("USAGE: <./a.out> <input file>\n");exit(0);}
+
+
     initializePageTable(pagetable);
     initializeTLB(TLB, TLB_SIZE);
     backing_ptr = populateSecondaryMem(file_name);
+
+    struct Queue *freeFramesQueue = createQueue(PAGES);
     
     unsigned char freePage = 0;
     int total_addr = 0, pageFault = 0, dirtyBitCount = 0, tlbHits = 0, tlbMisses = 0;
-//this while loop should be a function that takes in the file pointer and the page table
-
- while (fgets(buf, BUF_SIZE, input_fp) != NULL) {
+    
+    while (fgets(buf, BUF_SIZE, input_fp) != NULL) {
         int logical_addr = atoi(buf); //converts line read in to integer
         int offset = getOffset(logical_addr);
         int logicalPageNo = getPageNuber(logical_addr); //page number
