@@ -5,10 +5,7 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
 #include "tlbQueue.h"
-
-
 #define PAGES 256
 #define PAGE_SIZE 256
 #define OFFSET_BITS 8
@@ -17,7 +14,6 @@
 #define BUF_SIZE 10
 #define TLB_SIZE 16
 #define EMPTY -1
-
 const char *file_name = "BACKING_STORE.bin";
 const char *output_file = "output.txt";
 signed char main_Memo[MEMO_SIZE];
@@ -35,8 +31,6 @@ signed char *populateSecondaryMem(const char *file_name);
 void outputMessage(int total_addr, int pageFault, int dirtyBitCount, int tlbHit);
 
 
-
-
 int main(int argc, const char *argv[]) {
     struct Queue* tlbQueue = createQueue(16);
     const char *input_file = argv[1];
@@ -50,7 +44,6 @@ int main(int argc, const char *argv[]) {
     for (int i = 0; i < TLB_SIZE; i++) {
         enqueue(tlbQueue, TLB[i][0], TLB[i][1]);
     }
-    printQueue(tlbQueue);
     backing_ptr = populateSecondaryMem(file_name);
     
     unsigned char freePage = 0;
@@ -62,25 +55,13 @@ int main(int argc, const char *argv[]) {
         int offset = getOffset(logical_addr);
         int logicalPageNo = getPageNuber(logical_addr); //page number
 
-        /*first we try to get physical frame number from TLB
+        //first we try to get physical frame number from TLB
         int physicalFrameNo = EMPTY;
         for (int i = 0; i < TLB_SIZE; i++) {
             if (TLB[i][0] == logicalPageNo) {
                 physicalFrameNo = TLB[i][1];
                 tlbHits++;
                 break;
-            }
-        }
-        */
-        int physicalFrameNo = EMPTY;
-        //first we should try to get the physical frame # from tlbQueue
-        if (physicalFrameNo == EMPTY) {
-            int* tlbQueueFront = getFront(tlbQueue);
-            if (tlbQueueFront != NULL) {
-                if (tlbQueueFront[0] == logicalPageNo) {
-                    physicalFrameNo = tlbQueueFront[1];
-                    tlbHits++;
-                }
             }
         }
 
@@ -134,9 +115,9 @@ void initializePageTable(int *pageTable) {
 }
 void initializeTLB(int tlb[][2], int rows) {
     for (int i = 0; i < rows; i++) {
-        TLB[i][0] = EMPTY;
+        tlb[i][0] = EMPTY;
         printf("TLB[%d][0] = %d\n", i, TLB[i][0]);
-        TLB[i][1] = EMPTY;
+        tlb[i][1] = EMPTY;
         printf("TLB[%d][1] = %d\n", i, TLB[i][1]);
     }
 }
@@ -155,7 +136,7 @@ signed char *populateSecondaryMem(const char *file_name) {
         perror("Unable to open file");
         exit(EXIT_FAILURE);
     }
-    long fileSize = getFileSize(file);
+    long unsigned fileSize = getFileSize(file);
     signed char *buffer = (signed char *)malloc(fileSize); //allocate memory for file to be read into
     if (buffer == NULL) {
         perror("Failed to allocate memory");

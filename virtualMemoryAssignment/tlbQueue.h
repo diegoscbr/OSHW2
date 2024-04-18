@@ -3,11 +3,11 @@
 
 struct Queue {
     int front, rear, size;
-    unsigned capacity;
+    int capacity;
     int** array;
 };
 
-struct Queue* createQueue(unsigned capacity);
+struct Queue* createQueue(int capacity);
 int isFull(struct Queue* queue);
 int isEmpty(struct Queue* queue);
 int* dequeue(struct Queue* queue);
