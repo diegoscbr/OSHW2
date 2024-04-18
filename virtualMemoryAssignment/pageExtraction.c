@@ -6,6 +6,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "tlbQueue.h"
+
+
 #define PAGES 256
 #define PAGE_SIZE 256
 #define OFFSET_BITS 8
@@ -29,9 +32,13 @@ int getOffset(int virtualAddress);
 int getDirtyBit(int virtualAddress);
 long getFileSize(FILE *file);
 signed char *populateSecondaryMem(const char *file_name);
-void outputMessage(int total_addr, int pageFault, int dirtyBitCount);
+void outputMessage(int total_addr, int pageFault, int dirtyBitCount, int tlbHit);
+
+
+
 
 int main(int argc, const char *argv[]) {
+    struct Queue* tlbQueue = createQueue(16);
     const char *input_file = argv[1];
     FILE *input_fp = fopen(input_file, "r"); //open address file
     FILE *backingSTORE_fp = fopen(file_name, "rb"); //open backing store file
@@ -39,6 +46,11 @@ int main(int argc, const char *argv[]) {
     if (argc != 2) {printf("USAGE: <./a.out> <input file>\n");exit(0);}
     initializePageTable(pagetable);
     initializeTLB(TLB, TLB_SIZE);
+    //populate tlbQueue from array
+    for (int i = 0; i < TLB_SIZE; i++) {
+        enqueue(tlbQueue, TLB[i][0], TLB[i][1]);
+    }
+    printQueue(tlbQueue);
     backing_ptr = populateSecondaryMem(file_name);
     
     unsigned char freePage = 0;
@@ -50,7 +62,7 @@ int main(int argc, const char *argv[]) {
         int offset = getOffset(logical_addr);
         int logicalPageNo = getPageNuber(logical_addr); //page number
 
-        //first we try to get physical frame number from TLB
+        /*first we try to get physical frame number from TLB
         int physicalFrameNo = EMPTY;
         for (int i = 0; i < TLB_SIZE; i++) {
             if (TLB[i][0] == logicalPageNo) {
@@ -58,8 +70,20 @@ int main(int argc, const char *argv[]) {
                 tlbHits++;
                 break;
             }
-        } 
-        //at first iteration of while loop this should not work
+        }
+        */
+        int physicalFrameNo = EMPTY;
+        //first we should try to get the physical frame # from tlbQueue
+        if (physicalFrameNo == EMPTY) {
+            int* tlbQueueFront = getFront(tlbQueue);
+            if (tlbQueueFront != NULL) {
+                if (tlbQueueFront[0] == logicalPageNo) {
+                    physicalFrameNo = tlbQueueFront[1];
+                    tlbHits++;
+                }
+            }
+        }
+
          if (physicalFrameNo == EMPTY) {
             physicalFrameNo = pagetable[logicalPageNo];
 
@@ -100,13 +124,9 @@ int main(int argc, const char *argv[]) {
     fclose(input_fp);
     fclose(backingSTORE_fp);
     fclose(output_fp);
-    outputMessage(total_addr, pageFault, dirtyBitCount);
+    outputMessage(total_addr, pageFault, dirtyBitCount, tlbHits);
     return 0;
 }
-
-
-
-
 void initializePageTable(int *pageTable) {
     for (int i = 0; i < PAGES; i++) {
         pageTable[i] = EMPTY;
@@ -163,10 +183,11 @@ int *setPageNumberAndOffset(int virtualAddress) {
     pageAndOffset[1] = getOffset(virtualAddress);
     return pageAndOffset;
 }
-void outputMessage(int total_addr, int pageFault, int dirtyBitCount) {
+void outputMessage(int total_addr, int pageFault, int dirtyBitCount, int tlbHit) {
     printf("Number of Translated Addresses = %d\n", total_addr);
     printf("Page Fault Rate = %.1f %%\n", ((float)pageFault / total_addr) * 100);
     printf("Number of Dirty Pages = %d\n", dirtyBitCount);
+    printf("TLB Hit Rate = %.1f %%\n", ((float)tlbHit / total_addr) * 100);
 }
 int getDirtyBit(int virtualAddress) {
     return (virtualAddress >> 16) & 0x1;
