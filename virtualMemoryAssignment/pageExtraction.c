@@ -60,13 +60,21 @@ int main(int argc, const char *argv[]) {
             }
         } 
         //at first iteration of while loop this should not work
+         if (physicalFrameNo == EMPTY) {
+            physicalFrameNo = pagetable[logicalPageNo];
 
+            // Update TLB with new mapping
+            // Use FIFO to decide which entry to replace
+            int replaceIndex = tlbMisses % TLB_SIZE; // Calculate index to replace
+            TLB[replaceIndex][0] = logicalPageNo; // Update TLB entry
+            TLB[replaceIndex][1] = physicalFrameNo;
 
-         physicalFrameNo = pagetable[logicalPageNo]; //frame number at same index as page number
+            tlbMisses++;
+        }
        
 
 
-        if (physicalFrameNo == -1) { // Page Fault
+        if (physicalFrameNo == -1) { // Page Fault if frame number still empty
             pageFault++; //increase page fault count
             physicalFrameNo = freePage; 
             freePage++;
@@ -82,8 +90,13 @@ int main(int argc, const char *argv[]) {
         int physical_addr = (physicalFrameNo << OFFSET_BITS) | offset;
         signed char value = main_Memo[physicalFrameNo * PAGE_SIZE + offset];
 //this can be replaced by a printf 
-        fprintf(output_fp, "Logical address: %08x Physical address: %08x Value: %08x Dirty Bit: %d\n", logical_addr, physical_addr, value, dirtyBit);
+        fprintf(output_fp, "Logical address: %08x Physical address: %08x Value: %08x Dirty Bit: %d TLB HIt: %d TLB Miss: %d\n", logical_addr, physical_addr, value, dirtyBit, tlbHits, tlbMisses);
     } //end while loop
+    printf("TLB after loop\n");
+    for (int i = 0; i < TLB_SIZE; i++) {
+        printf("TLB[%d][0] = %d\n", i, TLB[i][0]);
+        printf("TLB[%d][1] = %d\n", i, TLB[i][1]);
+    }
     fclose(input_fp);
     fclose(backingSTORE_fp);
     fclose(output_fp);
