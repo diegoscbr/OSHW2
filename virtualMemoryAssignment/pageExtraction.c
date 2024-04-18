@@ -3,18 +3,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tlbQueue.h"
+
 #define PAGES 256
 #define PAGE_SIZE 256
+#define MEMORY PAGES * PAGE_SIZE
+
 #define OFFSET_BITS 8
-#define OFFSET_MASK 255
-#define MEMO_SIZE PAGES * PAGE_SIZE
+
 #define BUF_SIZE 10
 #define TLB_SIZE 16
+
 #define EMPTY -1
-const char *file_name = "BACKING_STORE.bin";
+const char *diskFile = "BACKING_STORE.bin";
 const char *output_file = "output.txt";
-signed char main_Memo[MEMO_SIZE];
-signed char *backing_ptr;
+signed char ramMem[MEMORY];
+signed char *storagePointer;
 char buf[BUF_SIZE];
 int pagetable[PAGES];
 int TLB[TLB_SIZE][2];
@@ -31,12 +34,12 @@ void outputMessage(int total_addr, int pageFault, int dirtyBitCount, int tlbHit)
 int main(int argc, const char *argv[]) {
     const char *input_file = argv[1];
     FILE *input_fp = fopen(input_file, "r"); //open address file
-    FILE *backingSTORE_fp = fopen(file_name, "rb"); //open backing store file
+    FILE *backingSTORE_fp = fopen(diskFile, "rb"); //open backing store file
     FILE *output_fp = fopen(output_file, "w");  
     if (argc != 2) {printf("USAGE: <./a.out> <input file>\n");exit(0);}
     initializePageTable(pagetable);
     initializeTLB(TLB, TLB_SIZE);
-    backing_ptr = populateSecondaryMem(file_name);
+    storagePointer = populateSecondaryMem(diskFile);
     
     unsigned char freePage = 0;
     int total_addr = 0, pageFault = 0, dirtyBitCount = 0, tlbHits = 0, tlbMisses = 0;
@@ -72,7 +75,7 @@ int main(int argc, const char *argv[]) {
             physicalFrameNo = freePage; 
             freePage++;
             fseek(backingSTORE_fp, logicalPageNo * PAGE_SIZE, SEEK_SET);
-            fread(main_Memo + physicalFrameNo * PAGE_SIZE, sizeof(char), PAGE_SIZE, backingSTORE_fp);
+            fread(ramMem + physicalFrameNo * PAGE_SIZE, sizeof(char), PAGE_SIZE, backingSTORE_fp);
             pagetable[logicalPageNo] = physicalFrameNo; //update page table     
         }
         
@@ -81,14 +84,14 @@ int main(int argc, const char *argv[]) {
         total_addr++;
 
         int physical_addr = (physicalFrameNo << OFFSET_BITS) | offset;
-        signed char value = main_Memo[physicalFrameNo * PAGE_SIZE + offset];
+        signed char value = ramMem[physicalFrameNo * PAGE_SIZE + offset];
 //this can be replaced by a printf 
         fprintf(output_fp, "Logical address: %08x Physical address: %08x Value: %08x Dirty Bit: %d TLB HIt: %d\n", logical_addr, physical_addr, value, dirtyBit, tlbHits);
     } //end while loop
     printf("TLB after loop\n");
     for (int i = 0; i < TLB_SIZE; i++) {
         printf("TLB[%d][0] = %d\n", i, TLB[i][0]);
-        printf("TLB[%d][1] = %d\n", i, TLB[i][1]);
+        printf("TLB[%d][1] = %08x\n", i, TLB[i][1]);
     }
     fclose(input_fp);
     fclose(backingSTORE_fp);
@@ -115,25 +118,24 @@ long getFileSize(FILE *file) {
     return fileSize;
 }
 
-//takes backing_store file and maps it into memory
-signed char *populateSecondaryMem(const char *file_name) {
-    FILE *file = fopen(file_name, "rb");
-    if (file == NULL) {
+signed char *populateSecondaryMem(const char *fileName) {
+    FILE *backingFile = fopen(fileName, "rb");
+    if (backingFile == NULL) {
         perror("Unable to open file");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
-    long unsigned fileSize = getFileSize(file);
+    long unsigned fileSize = getFileSize(backingFile);
     signed char *buffer = (signed char *)malloc(fileSize); //allocate memory for file to be read into
     if (buffer == NULL) {
         perror("Failed to allocate memory");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
-    size_t result = fread(buffer, 1, fileSize, file); //read file into buffer
+    size_t result = fread(buffer, 1, fileSize, backingFile); //read file into buffer
     if (result != fileSize) {
         perror("Failed to read file");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
-    fclose(file);
+    fclose(backingFile);
     return buffer;
 }
 
@@ -157,5 +159,5 @@ void outputMessage(int total_addr, int pageFault, int dirtyBitCount, int tlbHit)
     printf("TLB Hit Rate = %.1f %%\n", ((float)tlbHit / total_addr) * 100);
 }
 int getDirtyBit(int virtualAddress) {
-    return (virtualAddress >> 16) & 0x1;
+    return (virtualAddress >> 16) & 1;
 }
