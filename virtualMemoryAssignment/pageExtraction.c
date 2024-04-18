@@ -2,9 +2,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include "tlbQueue.h"
 #define PAGES 256
 #define PAGE_SIZE 256
@@ -32,7 +29,6 @@ void outputMessage(int total_addr, int pageFault, int dirtyBitCount, int tlbHit)
 
 
 int main(int argc, const char *argv[]) {
-    struct Queue* tlbQueue = createQueue(16);
     const char *input_file = argv[1];
     FILE *input_fp = fopen(input_file, "r"); //open address file
     FILE *backingSTORE_fp = fopen(file_name, "rb"); //open backing store file
@@ -40,10 +36,6 @@ int main(int argc, const char *argv[]) {
     if (argc != 2) {printf("USAGE: <./a.out> <input file>\n");exit(0);}
     initializePageTable(pagetable);
     initializeTLB(TLB, TLB_SIZE);
-    //populate tlbQueue from array
-    for (int i = 0; i < TLB_SIZE; i++) {
-        enqueue(tlbQueue, TLB[i][0], TLB[i][1]);
-    }
     backing_ptr = populateSecondaryMem(file_name);
     
     unsigned char freePage = 0;
@@ -67,13 +59,9 @@ int main(int argc, const char *argv[]) {
 
          if (physicalFrameNo == EMPTY) {
             physicalFrameNo = pagetable[logicalPageNo];
-
-            // Update TLB with new mapping
-            // Use FIFO to decide which entry to replace
             int replaceIndex = tlbMisses % TLB_SIZE; // Calculate index to replace
             TLB[replaceIndex][0] = logicalPageNo; // Update TLB entry
             TLB[replaceIndex][1] = physicalFrameNo;
-
             tlbMisses++;
         }
        
@@ -95,7 +83,7 @@ int main(int argc, const char *argv[]) {
         int physical_addr = (physicalFrameNo << OFFSET_BITS) | offset;
         signed char value = main_Memo[physicalFrameNo * PAGE_SIZE + offset];
 //this can be replaced by a printf 
-        fprintf(output_fp, "Logical address: %08x Physical address: %08x Value: %08x Dirty Bit: %d TLB HIt: %d TLB Miss: %d\n", logical_addr, physical_addr, value, dirtyBit, tlbHits, tlbMisses);
+        fprintf(output_fp, "Logical address: %08x Physical address: %08x Value: %08x Dirty Bit: %d TLB HIt: %d\n", logical_addr, physical_addr, value, dirtyBit, tlbHits);
     } //end while loop
     printf("TLB after loop\n");
     for (int i = 0; i < TLB_SIZE; i++) {
