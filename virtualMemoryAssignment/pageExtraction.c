@@ -35,8 +35,8 @@ void processLogicalAddress(FILE *input_fp, FILE *backingSTORE_fp, FILE *output_f
 
 int main(int argc, const char *argv[]) {
     const char *input_file = argv[1];
-    FILE *input_fp = fopen(input_file, "r"); //open address file
-    FILE *backingSTORE_fp = fopen(diskFile, "rb"); //open backing store file
+    FILE *input_fp = fopen(input_file, "r"); 
+    FILE *backingSTORE_fp = fopen(diskFile, "rb"); 
     FILE *output_fp = fopen(output_file, "w");  
     if (argc != 2) {printf("USAGE: <./a.out> <input file>\n");exit(0);}
     initializePageTable(pagetable);
@@ -60,9 +60,9 @@ void initializeTLB(int tlb[][2], int rows) {
     }
 }
 long getFileSize(FILE *file) {
-    fseek(file, 0, SEEK_END); //gets position at end of file
-    long fileSize = ftell(file); //gets the current position in the stream (last index of file stream = file size)
-    fseek(file, 0, SEEK_SET); //reset position indicator back to front of file
+    fseek(file, 0, SEEK_END); 
+    long fileSize = ftell(file); // (last index of file stream = file size)
+    fseek(file, 0, SEEK_SET); //reset position 
     clearerr(file);
     return fileSize;
 }
@@ -125,7 +125,7 @@ void processLogicalAddress(FILE *input_fp, FILE *backingSTORE_fp, FILE *output_f
     while (fgets(buf, BUF_SIZE, input_fp) != NULL) {
         int logical_addr = atoi(buf); // Convert the line read into an integer
         int offset = getOffset(logical_addr);
-        int logicalPageNo = getPageNuber(logical_addr); // Get page number
+        int logicalPageNo = getPageNuber(logical_addr); 
 
         // First, try to get the physical frame number from TLB
         int physicalFrameNo = EMPTY;
@@ -140,13 +140,13 @@ void processLogicalAddress(FILE *input_fp, FILE *backingSTORE_fp, FILE *output_f
         if (physicalFrameNo == EMPTY) {
             physicalFrameNo = pagetable[logicalPageNo];
             int replaceIndex = tlbMisses % TLB_SIZE; // Calculate index to replace
-            TLB[replaceIndex][0] = logicalPageNo; // Update TLB entry
+            TLB[replaceIndex][0] = logicalPageNo; // Update TLB 
             TLB[replaceIndex][1] = physicalFrameNo;
             tlbMisses++;
         }
 
         if (physicalFrameNo == -1) { // Page Fault if frame number still empty
-            pageFault++; // Increase page fault count
+            pageFault++; 
             physicalFrameNo = freePage;
             freePage++;
             fseek(backingSTORE_fp, logicalPageNo * PAGE_SIZE, SEEK_SET);
@@ -162,19 +162,14 @@ void processLogicalAddress(FILE *input_fp, FILE *backingSTORE_fp, FILE *output_f
 
         fprintf(output_fp, "Logical address: %08x Physical address: %08x Value: %08x Dirty Bit: %d TLB Hit: %d\n", logical_addr, physicalAddress, value, dirtyBit, tlbHits);
     }
-
-    // Print TLB contents after processing all addresses
     printf("TLB after loop\n");
     for (int i = 0; i < TLB_SIZE; i++) {
         printf("TLB[%d][0] = %d\n", i, TLB[i][0]);
         printf("TLB[%d][1] = %08x\n", i, TLB[i][1]);
     }
 
-    // Close file pointers
     fclose(input_fp);
     fclose(backingSTORE_fp);
     fclose(output_fp);
-
-    // Output final message
     outputMessage(pageFault, dirtyBitCount, tlbHits, total_addr);
 }
