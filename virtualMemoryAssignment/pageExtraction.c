@@ -21,6 +21,7 @@ signed char *storagePointer;
 char buf[BUF_SIZE];
 int pagetable[PAGES];
 int TLB[TLB_SIZE][2];
+int dirtyPageMap[PAGES][2];
 void initializeTLB(int tlb[][2], int rows);
 void initializePageTable(int *pageTable);
 int getPageNuber(int virtualAddress);
@@ -31,7 +32,7 @@ int getDirtyBit(int virtualAddress);
 long getFileSize(FILE *file);
 signed char *populateSecondaryMem(const char *file_name);
 void outputMessage(int pageFault, int dirtyBitCount, int tlbHit, int totalAddr);
-void processLogicalAddress(FILE *input_fp, FILE *backingSTORE_fp, FILE *output_fp, int *pagetable,  int TLB[TLB_SIZE][2], char *ramMem, struct Queue *swapDirtyQueue);
+void processLogicalAddress(FILE *input_fp, FILE *backingSTORE_fp, FILE *output_fp, int *pagetable,  int TLB[TLB_SIZE][2], char *ramMem, int dirtyPageMap[PAGES][2]);
 
 
 int main(int argc, const char *argv[]) {
@@ -39,15 +40,12 @@ int main(int argc, const char *argv[]) {
     FILE *input_fp = fopen(input_file, "r"); 
     FILE *backingSTORE_fp = fopen(diskFile, "rb"); 
     FILE *output_fp = fopen(output_file, "w");  
-    struct Queue *swapDirtyQueue = createQueue(TLB_SIZE);
     if (argc != 2) {printf("USAGE: <./a.out> <input file>\n");exit(0);}
     initializePageTable(pagetable);
     initializeTLB(TLB, TLB_SIZE);
     storagePointer = populateSecondaryMem(diskFile);
     if (storagePointer == NULL) {printf("Failed to populate secondary memory\n");exit(1);}
-    printQueue(swapDirtyQueue);
-   processLogicalAddress(input_fp, backingSTORE_fp, output_fp, pagetable, TLB, (char*)ramMem, swapDirtyQueue);
-   printQueue(swapDirtyQueue);
+   processLogicalAddress(input_fp, backingSTORE_fp, output_fp, pagetable, TLB, (char*)ramMem, dirtyPageMap);
     return 0;
 }
 
@@ -121,7 +119,7 @@ int getDirtyBit(int virtualAddress) {
     return (virtualAddress >> 16) & 1;
 }
 
-void processLogicalAddress(FILE *input_fp, FILE *backingSTORE_fp, FILE *output_fp, int *pagetable, int TLB[TLB_SIZE][2], char *ramMem, struct Queue *swapDirtyQueue) {
+void processLogicalAddress(FILE *input_fp, FILE *backingSTORE_fp, FILE *output_fp, int *pagetable, int TLB[TLB_SIZE][2], char *ramMem, int dirtyPageMap[PAGES][2]) {
     char buf[BUF_SIZE];
     unsigned char freePage = 0;
     int total_addr = 0, pageFault = 0, dirtyBitCount = 0, tlbHits = 0, tlbMisses = 0;
@@ -161,22 +159,26 @@ void processLogicalAddress(FILE *input_fp, FILE *backingSTORE_fp, FILE *output_f
         int dirtyBit = getDirtyBit(logical_addr);
         if (dirtyBit == 1){
             dirtyBitCount++;
-            if (!isFull(swapDirtyQueue)) {
-                enqueue(swapDirtyQueue, physicalFrameNo, 1);
-            } 
-        }
-        printQueue(swapDirtyQueue); 
+            dirtyPageMap[logicalPageNo][0] = logicalPageNo;
+            dirtyPageMap[logicalPageNo][1] = 1;
+        } 
         total_addr++;
         int physicalAddress = getPhysicalAddress(physicalFrameNo, offset);
         signed char value = ramMem[indexIntoMemory(physicalFrameNo, offset)];
 
         fprintf(output_fp, "Logical address: %08x Physical address: %08x Value: %08x Dirty Bit: %d TLB Hit: %d\n", logical_addr, physicalAddress, value, dirtyBit, tlbHits);
     }
-    printf("TLB after loop\n");
+    printf("TLB QUEUE: p\n");
     for (int i = 0; i < TLB_SIZE; i++) {
         printf("TLB[%d][0] = %d\n", i, TLB[i][0]);
         printf("TLB[%d][1] = %08x\n", i, TLB[i][1]);
     }
+     printf("Dirty Page Map: p\n");
+    for (int i = 0; i < PAGES; i++) {
+        printf("DirtyPageMap[%d][0] = %d\n", i, dirtyPageMap[i][0]);
+        printf("DirtyPageMap[%d][1] = %d\n", i, dirtyPageMap[i][1]);
+    }
+
 
     fclose(input_fp);
     fclose(backingSTORE_fp);
