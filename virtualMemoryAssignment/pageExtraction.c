@@ -175,11 +175,11 @@ void processLogicalAddress(FILE *input_fp, FILE *backingSTORE_fp, FILE *output_f
     }
      printf("Dirty Page Map: p\n");
     for (int i = 0; i < PAGES; i++) {
-        printf("DirtyPageMap[%d][0] = %d\n", i, dirtyPageMap[i][0]);
-        printf("DirtyPageMap[%d][1] = %d\n", i, dirtyPageMap[i][1]);
+        if(dirtyPageMap[i][0] != 0){
+         printf("DirtyPageMap[%d][1] = %d\n", i, dirtyPageMap[i][1]);
+        }
+        
     }
-
-
     fclose(input_fp);
     fclose(backingSTORE_fp);
     fclose(output_fp);
