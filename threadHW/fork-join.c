@@ -19,11 +19,15 @@ int main(int argc, char *argv[]) {
     // init semaphore here
     Sem_init(&s, 0);
     Pthread_create(&p, NULL, child, NULL);
-    sleep(1);
     // use semaphore here
+    sleep(1);
     Sem_post(&s);
-    printf("parent: end\n");
     Pthread_join(p, NULL);
+   
+    
+    
+    printf("parent: end\n");
+    
     return 0;
 }
 
