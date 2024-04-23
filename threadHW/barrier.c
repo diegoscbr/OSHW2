@@ -36,7 +36,7 @@ void barrier(barrier_t *b) {
         Sem_post(&b->syncThread);     
     }
     Sem_post(&b->lock);              
-    sleep(1);
+
     Sem_wait(&b->syncThread);       
     Sem_post(&b->syncThread);         
 
@@ -50,8 +50,32 @@ void barrier(barrier_t *b) {
 
     Sem_wait(&b->resetThread);        
     Sem_post(&b->resetThread);   
-    sleep(1);      
+
+    sleep(1); // Introduce delay here
+
+    Sem_wait(&b->lock);         
+    b->count++;                       
+    if (b->count == b->num_threads) { 
+        Sem_wait(&b->resetThread);     
+        Sem_post(&b->syncThread);     
+    }
+    Sem_post(&b->lock);              
+
+    Sem_wait(&b->syncThread);       
+    Sem_post(&b->syncThread);         
+
+    Sem_wait(&b->lock);               
+    b->count--;                        
+    if (b->count == 0) {               
+        Sem_wait(&b->syncThread);     
+        Sem_post(&b->resetThread);      
+    }
+    Sem_post(&b->lock);               
+
+    Sem_wait(&b->resetThread);        
+    Sem_post(&b->resetThread);   
 }
+
 
 //
 // XXX: don't change below here (just run it!)
