@@ -8,22 +8,45 @@
 //
 
 typedef struct __rwlock_t {
+    sem_t writer;
+    pthread_mutex_t mutex;
+    int readerCount;
+
 } rwlock_t;
 
 
 void rwlock_init(rwlock_t *rw) {
+    rw->readerCount = 0;
+    Sem_init(&rw->writer, 1);
+    Mutex_init(&rw->mutex);
 }
 
 void rwlock_acquire_readlock(rwlock_t *rw) {
+    Mutex_lock(&rw->mutex);
+    rw->readerCount++;
+    if(rw->readerCount == 1){
+        Sem_wait(&rw->writer);
+        Mutex_unlock(&rw->mutex);
+    }
+    
 }
 
 void rwlock_release_readlock(rwlock_t *rw) {
+    Mutex_lock(&rw->mutex);
+    rw->readerCount--;
+    if(rw->readerCount == 0){
+        Sem_post(&rw->writer);
+        Mutex_unlock(&rw->mutex);
+    }
+    
 }
 
 void rwlock_acquire_writelock(rwlock_t *rw) {
+    Sem_wait(&rw->writer);
 }
 
-void rwlock_release_writelock(rwlock_t *rw) {
+void rwlock_release_writelock(rwlock_t *rw) {   
+    Sem_post(&rw->writer);
 }
 
 //
@@ -83,3 +106,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+

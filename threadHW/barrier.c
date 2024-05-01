@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
 #include "common_threads.h"
 
 // If done correctly, each child should print their "before" message
@@ -10,72 +11,41 @@
 
 // You likely need two semaphores to do this correctly, and some
 // other integers to track things.
+
 typedef struct __barrier_t {
-    sem_t lock;
-    sem_t syncThread;
-    sem_t resetThread;
+    // add semaphores and other information here
+    sem_t sem1;
+    sem_t sem2;
+    int numThreads;
     int count;
-    int num_threads;
+   
 } barrier_t;
 
+
+// the single barrier we are using for this program
 barrier_t b;
 
 void barrier_init(barrier_t *b, int num_threads) {
-    Sem_init(&b->lock, 1);         
-    Sem_init(&b->syncThread, 0);      
-    Sem_init(&b->resetThread, 1);      
-    b->count = 0;                    
-    b->num_threads = num_threads;     
+    // initialization code goes here
+    b->numThreads = num_threads;
+    b->count =0;
+    Sem_init(&b->sem1, 1);
+    Sem_init(&b->sem2, 1);
 }
 
 void barrier(barrier_t *b) {
-    Sem_wait(&b->lock);         
-    b->count++;                       
-    if (b->count == b->num_threads) { 
-        Sem_wait(&b->resetThread);     
-        Sem_post(&b->syncThread);     
+    // barrier code goes here
+    Sem_wait(&b->sem1);
+    b->count++;
+
+    Sem_post(&b->sem1);
+
+    if(b->count == b->numThreads){
+        Sem_post(&b->sem2);
     }
-    Sem_post(&b->lock);              
-
-    Sem_wait(&b->syncThread);       
-    Sem_post(&b->syncThread);         
-
-    Sem_wait(&b->lock);               
-    b->count--;                        
-    if (b->count == 0) {               
-        Sem_wait(&b->syncThread);     
-        Sem_post(&b->resetThread);      
-    }
-    Sem_post(&b->lock);               
-
-    Sem_wait(&b->resetThread);        
-    Sem_post(&b->resetThread);   
-
-    sleep(1); // Introduce delay here
-
-    Sem_wait(&b->lock);         
-    b->count++;                       
-    if (b->count == b->num_threads) { 
-        Sem_wait(&b->resetThread);     
-        Sem_post(&b->syncThread);     
-    }
-    Sem_post(&b->lock);              
-
-    Sem_wait(&b->syncThread);       
-    Sem_post(&b->syncThread);         
-
-    Sem_wait(&b->lock);               
-    b->count--;                        
-    if (b->count == 0) {               
-        Sem_wait(&b->syncThread);     
-        Sem_post(&b->resetThread);      
-    }
-    Sem_post(&b->lock);               
-
-    Sem_wait(&b->resetThread);        
-    Sem_post(&b->resetThread);   
+    Sem_wait(&b->sem2);
+    Sem_post(&b->sem2);
 }
-
 
 //
 // XXX: don't change below here (just run it!)
