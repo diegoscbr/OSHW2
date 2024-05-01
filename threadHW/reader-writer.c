@@ -26,8 +26,8 @@ void rwlock_acquire_readlock(rwlock_t *rw) {
     rw->readerCount++;
     if(rw->readerCount == 1){
         Sem_wait(&rw->writer);
-        Mutex_unlock(&rw->mutex);
     }
+    Mutex_unlock(&rw->mutex);
     
 }
 
@@ -36,9 +36,8 @@ void rwlock_release_readlock(rwlock_t *rw) {
     rw->readerCount--;
     if(rw->readerCount == 0){
         Sem_post(&rw->writer);
-        Mutex_unlock(&rw->mutex);
     }
-    
+    Mutex_unlock(&rw->mutex);
 }
 
 void rwlock_acquire_writelock(rwlock_t *rw) {
